@@ -17,7 +17,7 @@ export default function AuthLayout() {
       <div className="absolute top-0 -left-20 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]" />
       <div className="absolute bottom-0 -right-20 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px]" />
 
-      <div className="relative w-full max-w-5xl flex flex-col md:flex-row bg-white/5 border border-white/10 backdrop-blur-xl rounded-[2rem] shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-5xl flex flex-col md:flex-row bg-white/5 border border-white/10 backdrop-blur-xl rounded-4xl shadow-2xl overflow-hidden">
 
         {/* LEFT SIDE: BRAND & TOGGLE */}
         <div className="relative w-full md:w-[40%] bg-blue-600 p-10 flex flex-col justify-between text-white overflow-hidden">
@@ -66,7 +66,7 @@ export default function AuthLayout() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-full md:w-auto px-8 py-3 bg-white text-blue-600 font-bold rounded-xl shadow-xl hover:bg-blue-50 transition-colors"
+                className="cursor-pointer w-full md:w-auto px-8 py-3 bg-white text-blue-600 font-bold rounded-xl shadow-xl hover:bg-blue-50 transition-colors"
               >
                 {mode === "login" ? "Daftar Sekarang" : "Masuk ke Akun"}
               </motion.button>

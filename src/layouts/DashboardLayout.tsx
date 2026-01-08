@@ -1,0 +1,65 @@
+import { Outlet, Link, useLocation } from "react-router";
+import { LayoutDashboard, Wallet, ArrowDownCircle, LogOut, User, BookmarkPlus } from "lucide-react";
+
+export default function DashboardLayout() {
+  const location = useLocation();
+
+  const menuItems = [
+    { name: "Overview", path: "/dashboard", icon: <LayoutDashboard size={20} /> },
+    { name: "Account", path: "/dashboard/account", icon: <BookmarkPlus /> },
+    { name: "Transaction", path: "/dashboard/transactions", icon: <Wallet size={20} /> },
+    { name: "Reports", path: "/dashboard/reports", icon: <ArrowDownCircle size={20} /> },
+  ];
+
+  return (
+    <div className="flex min-h-screen bg-slate-50">
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
+        <div className="p-6 flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">G</div>
+          <span className="text-xl font-bold text-slate-800 tracking-tight">Guardana</span>
+        </div>
+
+        <nav className="flex-1 px-4 space-y-1">
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link key={item.path} to={item.path}>
+                <div className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${isActive ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                  }`}>
+                  {item.icon}
+                  {item.name}
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-slate-100">
+          <button className="flex items-center gap-3 w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-medium">
+            <LogOut size={20} />
+            Keluar
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <main className="flex-1 flex flex-col">
+        {/* TOPBAR */}
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
+          <h1 className="text-sm font-medium text-slate-500">Selamat pagi, <span className="text-slate-900 font-bold">Budi!</span></h1>
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-600">
+              <User size={18} />
+            </div>
+          </div>
+        </header>
+
+        {/* PAGE CONTENT */}
+        <div className="p-8">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+}
