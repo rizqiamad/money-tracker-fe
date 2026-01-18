@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, CreditCard, Save } from "lucide-react";
 import Input from "../components/Input";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../helpers/axios";
 
 export default function AccountsPage() {
   const [isAdding, setIsAdding] = useState(false);
@@ -10,7 +12,11 @@ export default function AccountsPage() {
     { id: Date.now(), bankName: "BCA", balance: "" }
   ]);
 
-  const bankOptions = ["BCA", "BNI", "Mandiri", "BRI", "GoPay", "OVO", "Dana", "Tunai"];
+  const { isPending, error, data } = useQuery({
+    queryKey: ['ms_account_list'],
+    queryFn: () =>
+      api.post('/ms_account/list')
+  })
 
   const addRow = () => {
     setNewAccounts([...newAccounts, { id: Date.now(), bankName: "BCA", balance: "" }]);
@@ -75,7 +81,7 @@ export default function AccountsPage() {
                     <div className="w-full md:w-1/3">
                       <label className="block mb-1.5 text-sm font-semibold text-slate-700">Nama Bank/App</label>
                       <select className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition font-medium">
-                        {bankOptions.map(opt => <option key={opt}>{opt}</option>)}
+                        {data?.data.data.map((opt: any) => <option key={opt.ms_account_code}>{opt.ms_account_name}</option>)}
                       </select>
                     </div>
 

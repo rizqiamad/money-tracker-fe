@@ -2,15 +2,17 @@ interface IProps {
   label: string;
   type?: string;
   placeholder?: string;
+  name?: string;
 }
 
-export default function Input({ label, type = "text", placeholder }: IProps) {
+export default function Input({ name, label, type = "text", placeholder }: IProps) {
   return (
     <div className="group">
       <label className="block mb-1.5 text-sm font-semibold text-slate-700 group-focus-within:text-blue-600 transition-colors">
         {label}
       </label>
       <input
+        name={name}
         type={type}
         placeholder={placeholder || `Masukkan ${label.toLowerCase()}`}
         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none transition-all duration-200

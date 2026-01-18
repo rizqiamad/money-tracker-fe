@@ -1,15 +1,53 @@
-import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, Outlet, useLocation } from "react-router";
 
-export default function AuthLayout() {
-  const location = useLocation();
-  // Sinkronisasi state mode dengan URL saat ini
-  const [mode, setMode] = useState(location.pathname.includes("register") ? "register" : "login");
+interface IAuthContent {
+  title: string;
+  description: string;
+  footerText: string;
+  buttonText: string;
+  linkTo: string;
+}
 
-  useEffect(() => {
-    setMode(location.pathname.includes("register") ? "register" : "login");
-  }, [location.pathname]);
+const AUTH_CONTENT: Record<string, IAuthContent> = {
+  "/login": {
+    title: "Selamat Datang Kembali!",
+    description: "Kelola pengeluaran dengan lebih cerdas dan pantau setiap rupiah yang Anda simpan.",
+    footerText: "Belum punya akun?",
+    buttonText: "Daftar Sekarang",
+    linkTo: "/register"
+  },
+  "/register": {
+    title: "Mulai Perjalanan Finansialmu.",
+    description: "Bergabunglah dengan ribuan pengguna yang telah berhasil mengatur keuangan mereka.",
+    footerText: "Sudah memiliki akun?",
+    buttonText: "Masuk ke Akun",
+    linkTo: "/login"
+  },
+  "/register/verify_otp": {
+    title: "Langkah Terakhir Verifikasi.",
+    description: "Masukkan kode yang kami kirimkan untuk memastikan keamanan akun Anda.",
+    footerText: "Salah memasukkan email?",
+    buttonText: "Ubah Email",
+    linkTo: "/register"
+  },
+  "/forgot_password": {
+    title: "Atur Ulang Kata Sandi.",
+    description: "Jangan khawatir, kami akan membantu Anda mendapatkan akses kembali ke akun Anda.",
+    footerText: "Ingat kata sandi?",
+    buttonText: "Kembali Login",
+    linkTo: "/login"
+  }
+};
+
+const getNormalizedPath = (path: string) => {
+  if (path.includes("/verify_otp/")) return "/register/verify_otp";
+  return path;
+};
+
+export default function AuthLayout() {
+  const location: { pathname: string } = useLocation();
+  const content = AUTH_CONTENT[getNormalizedPath(location.pathname)] || AUTH_CONTENT["/login"];
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-slate-950 p-4 overflow-hidden">
@@ -19,56 +57,44 @@ export default function AuthLayout() {
 
       <div className="relative w-full max-w-5xl flex flex-col md:flex-row bg-white/5 border border-white/10 backdrop-blur-xl rounded-4xl shadow-2xl overflow-hidden">
 
-        {/* LEFT SIDE: BRAND & TOGGLE */}
-        <div className="relative w-full md:w-[40%] bg-blue-600 p-10 flex flex-col justify-between text-white overflow-hidden">
-          {/* Animated Background Pattern */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <svg width="100%" height="100%"><path d="M0 0h100v100H0z" fill="url(#grid)" /></svg>
-          </div>
+        {/* LEFT SIDE: BRAND & DYNAMIC CONTENT */}
+        <div className="relative w-full md:w-[40%] bg-blue-600 p-10 flex flex-col justify-between text-white overflow-hidden transition-colors duration-500">
 
           <div className="relative z-10">
-            <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              className="flex items-center gap-3 mb-12"
-            >
+            <div className="flex items-center gap-3 mb-12">
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
                 <img src="/guardana-logo.png" alt="G" className="w-6" />
               </div>
               <span className="text-2xl font-bold tracking-tight">Guardana</span>
-            </motion.div>
+            </div>
 
             <AnimatePresence mode="wait">
               <motion.div
-                key={mode}
+                key={location.pathname}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: 20, opacity: 0 }}
                 transition={{ duration: 0.3 }}
               >
                 <h2 className="text-4xl font-extrabold leading-tight">
-                  {mode === "login" ? "Selamat Datang Kembali!" : "Mulai Perjalanan Finansialmu."}
+                  {content.title}
                 </h2>
                 <p className="mt-4 text-blue-100 text-lg leading-relaxed">
-                  {mode === "login"
-                    ? "Kelola pengeluaran dengan lebih cerdas dan pantau setiap rupiah yang Anda simpan."
-                    : "Bergabunglah dengan ribuan pengguna yang telah berhasil mengatur keuangan mereka."}
+                  {content.description}
                 </p>
               </motion.div>
             </AnimatePresence>
           </div>
 
           <div className="relative z-10 mt-12 md:mt-0">
-            <p className="text-blue-200 mb-4 text-sm">
-              {mode === "login" ? "Belum punya akun?" : "Sudah memiliki akun?"}
-            </p>
-            <Link to={mode === "login" ? "/register" : "/login"}>
+            <p className="text-blue-200 mb-4 text-sm">{content.footerText}</p>
+            <Link to={content.linkTo}>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="cursor-pointer w-full md:w-auto px-8 py-3 bg-white text-blue-600 font-bold rounded-xl shadow-xl hover:bg-blue-50 transition-colors"
               >
-                {mode === "login" ? "Daftar Sekarang" : "Masuk ke Akun"}
+                {content.buttonText}
               </motion.button>
             </Link>
           </div>
@@ -78,12 +104,7 @@ export default function AuthLayout() {
         <div className="w-full md:w-[60%] bg-white p-8 md:p-16 flex flex-col justify-center">
           <div className="max-w-md mx-auto w-full">
             <AnimatePresence mode="wait">
-              <Outlet
-                context={{
-                  onSwitchToRegister: () => setMode("register"),
-                  onSwitchToLogin: () => setMode("login")
-                }}
-              />
+              <Outlet />
             </AnimatePresence>
           </div>
         </div>

@@ -1,9 +1,54 @@
-import { Link, useOutletContext } from "react-router";
+import { Link, useNavigate } from "react-router";
 import Input from "../components/Input";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { api } from "../helpers/axios";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import SubmitButton from "../components/SubmitButton";
+import type { AxiosError, AxiosResponse } from "axios";
+
+interface IReqBody {
+  username: string
+  email: string
+  password: string
+}
 
 export default function RegisterPage() {
-  const { onSwitchToLogin } = useOutletContext<{ onSwitchToLogin: () => void }>();
+  const [error, setError] = useState<string>('')
+  const navigate = useNavigate();
+
+  const { mutate, isPending } = useMutation<AxiosResponse<any, any, {}>, AxiosError<any, any>, IReqBody>({
+    mutationFn: (reqBody: IReqBody) => {
+      return api.post('/ms_user/register', reqBody)
+    },
+    onSuccess: async ({ data }) => {
+      console.log(data)
+      toast.success(data.message)
+      navigate(`/register/verify_otp/${data.token}`)
+    },
+    onError: async (err) => {
+      toast.error(err.response?.data.message)
+      console.log(err)
+    }
+  })
+
+  function submitForm(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+
+    const username = e.currentTarget.username.value
+    const email = e.currentTarget.email.value
+    const password = e.currentTarget.password.value
+    const confirm_password = e.currentTarget.confirm_password.value
+
+    if (password != confirm_password) {
+      setError("confirm password is not valid")
+    } else {
+      setError("")
+    }
+
+    mutate({ username, email, password })
+  }
 
   return (
     <motion.div
@@ -13,31 +58,34 @@ export default function RegisterPage() {
       exit={{ y: -40, opacity: 0 }}   // Keluar ke atas
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
-      <div>
+      <div className="mb-4">
         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Daftar Akun</h2>
-        <p className="text-slate-500 mt-2">Mulai kelola keuanganmu dengan lebih baik.</p>
+        <p className="text-slate-500 mt-1">Mulai kelola keuanganmu dengan lebih baik.</p>
       </div>
 
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-        <Input label="Nama Lengkap" />
-        <Input label="Email" type="email" />
+      <form className="space-y-4" onSubmit={submitForm}>
+        <Input name="username" label="Nama Lengkap" />
+        <Input name="email" label="Email" type="email" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input label="Password" type="password" />
-          <Input label="Konfirmasi" type="password" />
+          <div>
+            <Input name="password" label="Password" type="password" />
+          </div>
+          <div>
+            <Input name="confirm_password" label="Konfirmasi Password" type="password" />
+            {error && (
+              <p className="text-sm text-red-500 mt-1">
+                {error}
+              </p>
+            )}
+          </div>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all mt-4"
-        >
-          Buat Akun Sekarang
-        </motion.button>
+        <SubmitButton isPending={isPending} text="Buat akun sekarang" textLoading="Mendaftarkan..." />
       </form>
 
       <div className="pt-4 text-center">
         <span className="text-slate-500 text-sm">Sudah punya akun? </span>
-        <Link to="/login" onClick={onSwitchToLogin} className="text-blue-600 font-bold hover:underline underline-offset-4">
+        <Link to="/login" className="text-blue-600 font-bold hover:underline underline-offset-4">
           Masuk di sini
         </Link>
       </div>
