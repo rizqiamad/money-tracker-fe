@@ -56,7 +56,7 @@ export default function LoginPage() {
         <div className="space-y-1">
           <Input name="password" label="Password" type="password" />
           <div className="text-right">
-            <button type="button" className="cursor-pointer text-xs font-semibold text-blue-600 hover:text-blue-700">Lupa Password?</button>
+            <Link to={'/forgot_password'} className="cursor-pointer text-xs font-semibold text-blue-600 hover:text-blue-700">Lupa Password?</Link>
           </div>
         </div>
 

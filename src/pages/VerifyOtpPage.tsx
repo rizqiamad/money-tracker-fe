@@ -48,8 +48,6 @@ export default function VerifyOtpPage() {
     }
   })
 
-  const decoded = jwtDecode<{ email: string }>(token);
-
   const handleChange = (index: number, value: string) => {
     const newOtp = [...otp];
     newOtp[index] = value.substring(value.length - 1);
@@ -105,6 +103,8 @@ export default function VerifyOtpPage() {
     toast.error(error.response?.data.message)
     return <Navigate to={'/register'} replace />
   }
+
+  const decoded = jwtDecode<{ email: string }>(token);
 
   return (
     <motion.div

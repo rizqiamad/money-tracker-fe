@@ -32,16 +32,24 @@ const AUTH_CONTENT: Record<string, IAuthContent> = {
     linkTo: "/register"
   },
   "/forgot_password": {
+    title: "Masukkan email yang terdaftar.",
+    description: "Jangan khawatir, kami akan membantu Anda mendapatkan akses kembali ke akun Anda.",
+    footerText: "",
+    buttonText: "Kembali Login",
+    linkTo: "/login"
+  },
+  "/reset_password": {
     title: "Atur Ulang Kata Sandi.",
     description: "Jangan khawatir, kami akan membantu Anda mendapatkan akses kembali ke akun Anda.",
     footerText: "Ingat kata sandi?",
-    buttonText: "Kembali Login",
+    buttonText: "Kembali ke login",
     linkTo: "/login"
   }
 };
 
 const getNormalizedPath = (path: string) => {
   if (path.includes("/verify_otp/")) return "/register/verify_otp";
+  if (path.includes("/reset_password/")) return "/reset_password";
   return path;
 };
 

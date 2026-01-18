@@ -39,9 +39,9 @@ export default function RegisterPage() {
     const username = e.currentTarget.username.value
     const email = e.currentTarget.email.value
     const password = e.currentTarget.password.value
-    const confirm_password = e.currentTarget.confirm_password.value
+    const confirmPassword = e.currentTarget.confirmPassword.value
 
-    if (password != confirm_password) {
+    if (password != confirmPassword) {
       setError("confirm password is not valid")
     } else {
       setError("")
@@ -71,7 +71,7 @@ export default function RegisterPage() {
             <Input name="password" label="Password" type="password" />
           </div>
           <div>
-            <Input name="confirm_password" label="Konfirmasi Password" type="password" />
+            <Input name="confirmPassword" label="Konfirmasi Password" type="password" />
             {error && (
               <p className="text-sm text-red-500 mt-1">
                 {error}
