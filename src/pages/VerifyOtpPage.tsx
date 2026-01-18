@@ -147,7 +147,7 @@ export default function VerifyOtpPage() {
         </div>
 
         <div className="text-center">
-          <OtpCountDown />
+          <OtpCountDown token={token} />
         </div>
       </form>
     </motion.div>
