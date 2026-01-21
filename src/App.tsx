@@ -7,13 +7,12 @@ import DashboardPage from "./pages/DashboardPage";
 import InputTransactionPage from "./pages/InputTransactionPage";
 import AccountsPage from "./pages/AccountPage";
 import ReportsPage from "./pages/ReportsPage";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import VerifyOtpPage from "./pages/VerifyOtpPage";
 import MainLayout from "./layouts/MainLayout";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-
-const queryClient = new QueryClient()
+import { queryClient } from "./helpers/query";
 
 export default function App() {
   return (

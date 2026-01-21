@@ -1,17 +1,33 @@
-import { Outlet, Link, useLocation, Navigate } from "react-router";
+import { Outlet, Link, useLocation, Navigate, useNavigate } from "react-router";
 import { LayoutDashboard, Wallet, ArrowDownCircle, LogOut, User, BookmarkPlus } from "lucide-react";
 import Loading from "../components/Loading";
 import { api } from "../helpers/axios";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient } from "../helpers/query";
 
 export default function DashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate()
   const { isLoading, error } = useQuery({
-    queryKey: ['verify_token'],
+    queryKey: ['verify_cookie_dashboard_layout'],
     queryFn: () => {
       return api.get("/ms_user/verify_cookie")
     },
     staleTime: 1000 * 60 * 10,
+    retry: false
+  })
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: () => {
+      return api.post("/ms_user/logout")
+    },
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: ['verify_cookie_dashboard_layout'] })
+      navigate('/login', { replace: true })
+    },
+    onError: (err) => {
+      console.log(err)
+    }
   })
 
   if (isLoading) {
@@ -54,7 +70,7 @@ export default function DashboardLayout() {
         </nav>
 
         <div className="p-4 border-t border-slate-100">
-          <button className="flex items-center gap-3 w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-medium">
+          <button disabled={isPending} onClick={() => mutate()} className="cursor-pointer flex items-center gap-3 w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-medium">
             <LogOut size={20} />
             Keluar
           </button>

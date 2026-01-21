@@ -65,7 +65,8 @@ export default function AuthLayout() {
     queryFn: () =>
       api.get('/ms_user/verify_cookie'),
     staleTime: Infinity,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    retry: false
   })
 
   if (isLoading) {
