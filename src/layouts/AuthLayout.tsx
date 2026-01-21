@@ -1,5 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, Outlet, useLocation } from "react-router";
+import { Link, Navigate, Outlet, useLocation } from "react-router";
+import { api } from "../helpers/axios";
+import Loading from "../components/Loading";
 
 interface IAuthContent {
   title: string;
@@ -57,7 +60,23 @@ export default function AuthLayout() {
   const location: { pathname: string } = useLocation();
   const content = AUTH_CONTENT[getNormalizedPath(location.pathname)] || AUTH_CONTENT["/login"];
 
-  return (
+  const { error, isLoading, data } = useQuery({
+    queryKey: ['ms_account_list'],
+    queryFn: () =>
+      api.get('/ms_user/verify_cookie'),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false
+  })
+
+  if (isLoading) {
+    return <Loading />
+  }
+
+  if (data?.status == 200) {
+    return <Navigate to={'/dashboard'} />
+  }
+
+  if (error) return (
     <div className="relative min-h-screen flex items-center justify-center bg-slate-950 p-4 overflow-hidden">
       {/* Background Decorative Orbs */}
       <div className="absolute top-0 -left-20 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]" />

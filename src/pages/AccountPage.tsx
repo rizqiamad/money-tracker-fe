@@ -12,10 +12,13 @@ export default function AccountsPage() {
     { id: Date.now(), bankName: "BCA", balance: "" }
   ]);
 
-  const { isPending, error, data } = useQuery({
+  const { data } = useQuery({
     queryKey: ['ms_account_list'],
     queryFn: () =>
-      api.post('/ms_account/list')
+      api.post('/ms_account/list'),
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
   })
 
   const addRow = () => {

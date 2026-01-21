@@ -1,8 +1,26 @@
-import { Outlet, Link, useLocation } from "react-router";
+import { Outlet, Link, useLocation, Navigate } from "react-router";
 import { LayoutDashboard, Wallet, ArrowDownCircle, LogOut, User, BookmarkPlus } from "lucide-react";
+import Loading from "../components/Loading";
+import { api } from "../helpers/axios";
+import { useQuery } from "@tanstack/react-query";
 
 export default function DashboardLayout() {
   const location = useLocation();
+  const { isLoading, error } = useQuery({
+    queryKey: ['verify_token'],
+    queryFn: () => {
+      return api.get("/ms_user/verify_cookie")
+    },
+    staleTime: 1000 * 60 * 10,
+  })
+
+  if (isLoading) {
+    return <Loading />
+  }
+
+  if (error) {
+    return <Navigate to={"/login"} replace />
+  }
 
   const menuItems = [
     { name: "Overview", path: "/dashboard", icon: <LayoutDashboard size={20} /> },

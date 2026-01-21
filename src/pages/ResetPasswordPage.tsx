@@ -29,7 +29,7 @@ export default function ResetPasswordPage() {
 
   const { mutate, isPending: isPendingMutation } = useMutation({
     mutationFn: (password: string) => {
-      return api.post("/ms_user/reset_password", { token, new_password: password });
+      return api.patch("/ms_user/reset_password", { token, new_password: password });
     },
     onSuccess: () => {
       toast.success("Password berhasil diperbarui! Silakan login kembali.");
