@@ -4,11 +4,14 @@ import Loading from "../components/Loading";
 import { api } from "../helpers/axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "../helpers/query";
+import useUserStore from "../store/user";
 
 export default function DashboardLayout() {
   const location = useLocation();
-  const navigate = useNavigate()
-  const { isLoading, error } = useQuery({
+  const navigate = useNavigate();
+  const setUser = useUserStore((state) => state.setUser)
+  const username = useUserStore((state) => state.username)
+  const { isLoading, error, data } = useQuery({
     queryKey: ['verify_cookie_dashboard_layout'],
     queryFn: () => {
       return api.get("/ms_user/verify_cookie")
@@ -36,6 +39,11 @@ export default function DashboardLayout() {
 
   if (error) {
     return <Navigate to={"/login"} replace />
+  }
+
+  if (data) {
+    const { id, email, username } = data.data.data
+    setUser({ id, email, username })
   }
 
   const menuItems = [
@@ -81,7 +89,7 @@ export default function DashboardLayout() {
       <main className="flex-1 flex flex-col">
         {/* TOPBAR */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
-          <h1 className="text-sm font-medium text-slate-500">Selamat pagi, <span className="text-slate-900 font-bold">Budi!</span></h1>
+          <h1 className="text-sm font-medium text-slate-500">Selamat pagi, <span className="text-slate-900 font-bold">{username}!</span></h1>
           <div className="flex items-center gap-4">
             <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-600">
               <User size={18} />
