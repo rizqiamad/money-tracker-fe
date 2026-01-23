@@ -4,6 +4,7 @@ interface IUserData {
   username?: string;
   email?: string;
   no_handphone?: string;
+  is_verified?: number;
 }
 
 type State = {

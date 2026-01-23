@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { User, Mail, Phone, Wallet, ShieldAlert, CheckCircle2, MessageSquare, Key, ChevronRight, ArrowLeft, LogOut, LayoutDashboard } from 'lucide-react';
+import { useState } from 'react';
+import { User, Mail, Phone, Wallet, ShieldAlert, MessageSquare, ArrowLeft, LogOut, LayoutDashboard } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { api } from '../helpers/axios';
 import { queryClient } from '../helpers/query';
@@ -23,12 +23,6 @@ export default function ProfilePage() {
       console.log(err)
     }
   })
-
-  const [waStatus, setWaStatus] = useState({
-    isRegistered: true,
-    isVerified: false,
-    phoneNumber: "+6281234567890"
-  });
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -95,7 +89,7 @@ export default function ProfilePage() {
               className={`cursor-pointer pb-4 text-sm font-bold flex items-center gap-2 transition-all ${activeTab === 'aktivasi' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
             >
               Aktivasi WhatsApp
-              {!waStatus.isVerified && (
+              {user.is_verified && user.is_verified < 2 && (
                 <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
@@ -172,7 +166,7 @@ export default function ProfilePage() {
         ) : (
           /* TAB AKTIVASI WHATSAPP */
           <div className="max-w-2xl mx-auto">
-            {!waStatus.isVerified && (
+            {user.is_verified && user.is_verified < 2 && (
               <div className="mb-8 bg-orange-50 border border-orange-200 rounded-2xl p-5 flex gap-4 items-start shadow-sm shadow-orange-100">
                 <div className="w-12 h-12 bg-orange-500 rounded-2xl shrink-0 flex items-center justify-center text-white shadow-lg shadow-orange-200">
                   <ShieldAlert size={24} />
@@ -186,7 +180,7 @@ export default function ProfilePage() {
                       placeholder="Masukkan 6 digit OTP"
                       className="bg-white border border-orange-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 w-44"
                     />
-                    <button className="bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-orange-700 transition-all shadow-md shadow-orange-200">
+                    <button className="cursor-pointer bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-orange-700 transition-all shadow-md shadow-orange-200">
                       Verifikasi
                     </button>
                   </div>
@@ -211,10 +205,11 @@ export default function ProfilePage() {
                   <div className="flex gap-3">
                     <input
                       type="text"
-                      defaultValue={waStatus.phoneNumber}
-                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-5 py-3.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                      defaultValue={user.no_handphone}
+                      placeholder='cth: 081212948372'
+                      className="placeholder:text-slate-300 flex-1 bg-slate-50 border border-slate-200 rounded-xl px-5 py-3.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
-                    <button className="bg-slate-900 text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
+                    <button className="cursor-pointer bg-slate-900 text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
                       Simpan
                     </button>
                   </div>
@@ -222,13 +217,13 @@ export default function ProfilePage() {
 
                 <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${waStatus.isVerified ? 'bg-green-500' : 'bg-orange-500'}`}></div>
+                    <div className={`w-3 h-3 rounded-full ${user.is_verified && user.is_verified > 2 ? 'bg-green-500' : 'bg-orange-500'}`}></div>
                     <span className="text-sm font-bold text-slate-600">
-                      Status: {waStatus.isVerified ? 'Aktif' : 'Menunggu Verifikasi'}
+                      Status: {user.is_verified && user.is_verified > 2 ? 'Aktif' : 'Menunggu Verifikasi'}
                     </span>
                   </div>
-                  {!waStatus.isVerified && (
-                    <button className="text-sm font-bold text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg transition-colors">
+                  {user.is_verified && user.is_verified < 2 && (
+                    <button className="cursor-pointer text-sm font-bold text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg transition-colors">
                       Kirim Ulang Kode
                     </button>
                   )}

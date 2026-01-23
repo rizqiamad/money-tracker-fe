@@ -101,15 +101,6 @@ export default function DashboardLayout() {
                     <span>Lihat Profil</span>
                   </button>
 
-                  {/* Menu: Aktivasi WhatsApp */}
-                  <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-green-600 transition-colors">
-                    <MessageSquare size={16} />
-                    <div className="flex flex-col items-start">
-                      <span>Aktivasi WhatsApp</span>
-                      <span className="text-[10px] text-slate-400">Hubungkan nomor Anda</span>
-                    </div>
-                  </button>
-
                   <div className="border-t border-slate-50 mt-2 pt-2">
                     <button onClick={() => mutate()} className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">
                       <LogOut size={16} />
