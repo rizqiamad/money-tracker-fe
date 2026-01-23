@@ -1,50 +1,29 @@
-import { Outlet, Link, useLocation, Navigate, useNavigate } from "react-router";
-import { LayoutDashboard, Wallet, ArrowDownCircle, LogOut, User, BookmarkPlus } from "lucide-react";
-import Loading from "../components/Loading";
+import { Outlet, Link, useLocation, useNavigate } from "react-router";
+import { LayoutDashboard, Wallet, ArrowDownCircle, LogOut, User, BookmarkPlus, MessageSquare, ChevronDown } from "lucide-react";
 import { api } from "../helpers/axios";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "../helpers/query";
 import useUserStore from "../store/user";
+import { useState } from "react";
 
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const setUser = useUserStore((state) => state.setUser)
-  const username = useUserStore((state) => state.username)
-  const { isLoading, error, data } = useQuery({
-    queryKey: ['verify_cookie_dashboard_layout'],
-    queryFn: () => {
-      return api.get("/ms_user/verify_cookie")
-    },
-    staleTime: 1000 * 60 * 10,
-    retry: false
-  })
+  const user = useUserStore((state) => state.user)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const { mutate, isPending } = useMutation({
     mutationFn: () => {
       return api.post("/ms_user/logout")
     },
     onSuccess: () => {
-      queryClient.removeQueries({ queryKey: ['verify_cookie_dashboard_layout'] })
+      queryClient.removeQueries({ queryKey: ['profile_guard_layout'] })
       navigate('/login', { replace: true })
     },
     onError: (err) => {
       console.log(err)
     }
   })
-
-  if (isLoading) {
-    return <Loading />
-  }
-
-  if (error) {
-    return <Navigate to={"/login"} replace />
-  }
-
-  if (data) {
-    const { id, email, username } = data.data.data
-    setUser({ id, email, username })
-  }
 
   const menuItems = [
     { name: "Overview", path: "/dashboard", icon: <LayoutDashboard size={20} /> },
@@ -88,12 +67,58 @@ export default function DashboardLayout() {
       {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col">
         {/* TOPBAR */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
-          <h1 className="text-sm font-medium text-slate-500">Selamat pagi, <span className="text-slate-900 font-bold">{username}!</span></h1>
-          <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-600">
-              <User size={18} />
-            </div>
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 relative">
+          <h1 className="text-sm font-medium text-slate-500">
+            Selamat pagi, <span className="text-slate-900 font-bold">{user.username}!</span>
+          </h1>
+
+          <div className="relative">
+            {/* TRIGGER BUTTON */}
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="cursor-pointer flex items-center gap-2 p-1.5 hover:bg-slate-50 rounded-lg transition-colors"
+            >
+              <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                <User size={18} />
+              </div>
+              <ChevronDown size={14} className={`text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* DROPDOWN MENU */}
+            {isDropdownOpen && (
+              <>
+                {/* Overlay untuk menutup dropdown saat klik di luar */}
+                <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)}></div>
+
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-2 z-20">
+                  <div className="px-4 py-2 border-b border-slate-50 mb-1">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Menu Akun</p>
+                  </div>
+
+                  {/* Menu: Profile */}
+                  <button onClick={() => navigate('/profile')} className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors">
+                    <User size={16} />
+                    <span>Lihat Profil</span>
+                  </button>
+
+                  {/* Menu: Aktivasi WhatsApp */}
+                  <button className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-green-600 transition-colors">
+                    <MessageSquare size={16} />
+                    <div className="flex flex-col items-start">
+                      <span>Aktivasi WhatsApp</span>
+                      <span className="text-[10px] text-slate-400">Hubungkan nomor Anda</span>
+                    </div>
+                  </button>
+
+                  <div className="border-t border-slate-50 mt-2 pt-2">
+                    <button onClick={() => mutate()} className="cursor-pointer w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                      <LogOut size={16} />
+                      <span>Keluar</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </header>
 

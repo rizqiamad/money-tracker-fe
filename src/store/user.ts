@@ -1,9 +1,13 @@
 import { create } from "zustand";
 
-type State = {
-  id?: string;
+interface IUserData {
   username?: string;
   email?: string;
+  no_handphone?: string;
+}
+
+type State = {
+  user: IUserData;
 };
 
 type Action = {
@@ -11,11 +15,8 @@ type Action = {
 };
 
 const useUserStore = create<State & Action>((set) => ({
-  id: "",
-  username: "",
-  email: "",
-  setUser: (user: State) =>
-    set(() => ({ id: user.id, username: user.username, email: user.username })),
+  user: { username: "", email: "", no_handphone: "" },
+  setUser: (state: IUserData) => set({ user: state }),
 }));
 
 export default useUserStore;

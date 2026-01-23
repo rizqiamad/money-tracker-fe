@@ -13,6 +13,8 @@ import MainLayout from "./layouts/MainLayout";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import { queryClient } from "./helpers/query";
+import ProfilePage from "./pages/ProfilePage";
+import GuardLayout from "./layouts/GuardLayout";
 
 export default function App() {
   return (
@@ -31,12 +33,18 @@ export default function App() {
               <Route path="register/verify_otp/:token" element={<VerifyOtpPage />} />
             </Route>
 
-            {/* Dashboard Routes */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<DashboardPage />} />
-              <Route path="transactions" element={<InputTransactionPage />} />
-              <Route path="account" element={<AccountsPage />} />
-              <Route path="reports" element={<ReportsPage />} />
+            {/* Guarded Routes */}
+            <Route element={<GuardLayout />}>
+
+              {/* Dashboard Routes */}
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="transactions" element={<InputTransactionPage />} />
+                <Route path="account" element={<AccountsPage />} />
+                <Route path="reports" element={<ReportsPage />} />
+              </Route>
+
+              <Route path="profile" element={<ProfilePage />} />
             </Route>
 
           </Route>

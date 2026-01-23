@@ -61,9 +61,9 @@ export default function AuthLayout() {
   const content = AUTH_CONTENT[getNormalizedPath(location.pathname)] || AUTH_CONTENT["/login"];
 
   const { error, isLoading, data } = useQuery({
-    queryKey: ['ms_account_list'],
+    queryKey: ['profile_auth_layout'],
     queryFn: () =>
-      api.get('/ms_user/verify_cookie'),
+      api.get('/ms_user/profile'),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     retry: false
