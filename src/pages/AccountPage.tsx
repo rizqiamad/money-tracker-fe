@@ -4,6 +4,7 @@ import { Plus, Trash2, CreditCard, Save } from "lucide-react";
 import Input from "../components/Input";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../helpers/axios";
+import UserAccountList from "../components/AccountPage/UserAccountList";
 
 export default function AccountsPage() {
   const [isAdding, setIsAdding] = useState(false);
@@ -12,14 +13,14 @@ export default function AccountsPage() {
     { id: Date.now(), bankName: "BCA", balance: "" }
   ]);
 
-  const { data } = useQuery({
+  const { data: accountData } = useQuery({
     queryKey: ['ms_account_list'],
-    queryFn: () =>
-      api.post('/ms_account/list'),
+    queryFn: () => api.post('/ms_account/list'),
     staleTime: Infinity,
     refetchOnMount: false,
     refetchOnWindowFocus: false
   })
+  const msAccounts = accountData?.data.data || []
 
   const addRow = () => {
     setNewAccounts([...newAccounts, { id: Date.now(), bankName: "BCA", balance: "" }]);
@@ -42,14 +43,14 @@ export default function AccountsPage() {
         {!isAdding ? (
           <button
             onClick={() => setIsAdding(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200"
+            className="cursor-pointer flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200"
           >
             <Plus size={18} /> Tambah Akun
           </button>
         ) : (
           <button
             onClick={() => setIsAdding(false)}
-            className="text-sm font-semibold text-slate-500 hover:text-slate-800"
+            className="cursor-pointer text-sm font-semibold text-slate-500 hover:text-slate-800"
           >
             Batal
           </button>
@@ -84,7 +85,7 @@ export default function AccountsPage() {
                     <div className="w-full md:w-1/3">
                       <label className="block mb-1.5 text-sm font-semibold text-slate-700">Nama Bank/App</label>
                       <select className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition font-medium">
-                        {data?.data.data.map((opt: any) => <option key={opt.ms_account_code}>{opt.ms_account_name}</option>)}
+                        {msAccounts.map((opt: any) => <option key={opt.ms_account_code}>{opt.ms_account_name}</option>)}
                       </select>
                     </div>
 
@@ -118,20 +119,7 @@ export default function AccountsPage() {
             </div>
           </motion.div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          >
-            {/* Tampilan List Akun yang sudah ada (Seperti desain sebelumnya) */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-700" />
-              <p className="text-sm text-slate-500 font-medium">BCA</p>
-              <h3 className="text-xl font-bold text-slate-800 mt-1">Rp 5.000.000</h3>
-              {/* <button className="mt-4 text-xs font-semibold text-blue-600 opacity-0 group-hover:opacity-100 transition">Lihat Detail →</button> */}
-            </div>
-            {/* ... Map data akun lainnya ... */}
-          </motion.div>
+          <UserAccountList />
         )}
       </AnimatePresence>
     </div>

@@ -11,7 +11,7 @@ export default function GuardLayout() {
     queryFn: () => {
       return api.get("/ms_user/profile")
     },
-    staleTime: 1000 * 60 * 10,
+    staleTime: 1000 * 60 * 5,
     retry: false
   })
 

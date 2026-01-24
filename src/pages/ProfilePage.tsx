@@ -89,7 +89,15 @@ export default function ProfilePage() {
                 className={`relative cursor-pointer pb-4 text-sm font-bold transition-all ${activeTab === tab ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
                   }`}
               >
-                {tab === 'umum' ? 'Informasi Umum' : 'Aktivasi WhatsApp'}
+                <div className='flex items-center gap-1'>
+                  {tab === 'umum' ? 'Informasi Umum' : 'Aktivasi WhatsApp'}
+                  {tab != 'umum' && user.is_verified && user.is_verified < 2 && (
+                    <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                    </span>
+                  )}
+                </div>
                 {activeTab === tab && (
                   <motion.div
                     layoutId="activeTab"
@@ -97,6 +105,7 @@ export default function ProfilePage() {
                   />
                 )}
               </button>
+
             ))}
           </div>
         </div>
