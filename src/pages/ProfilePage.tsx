@@ -1,22 +1,26 @@
 import { useState } from 'react';
-import { User, Mail, Phone, Wallet, ShieldAlert, MessageSquare, ArrowLeft, LogOut, LayoutDashboard } from 'lucide-react';
+import { User, Mail, Phone, ShieldAlert, MessageSquare, ArrowLeft, LogOut, LayoutDashboard } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { api } from '../helpers/axios';
 import { queryClient } from '../helpers/query';
 import { useNavigate } from 'react-router';
 import useUserStore from '../store/user';
+import AccountSection from '../components/AccountSection';
+import { motion } from "framer-motion";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('umum');
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user)
+  const resetStore = useUserStore((state) => state.reset)
 
   const { mutate } = useMutation({
     mutationFn: () => {
       return api.post("/ms_user/logout")
     },
     onSuccess: () => {
-      queryClient.removeQueries({ queryKey: ['profile_guard_layout'] })
+      queryClient.clear()
+      resetStore()
       navigate('/login', { replace: true })
     },
     onError: (err) => {
@@ -77,25 +81,23 @@ export default function ProfilePage() {
           </div>
 
           {/* TAB NAVIGATION */}
-          <div className="flex gap-8 mt-10 border-b border-slate-100">
-            <button
-              onClick={() => setActiveTab('umum')}
-              className={`cursor-pointer pb-4 text-sm font-bold transition-all ${activeTab === 'umum' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              Informasi Umum
-            </button>
-            <button
-              onClick={() => setActiveTab('aktivasi')}
-              className={`cursor-pointer pb-4 text-sm font-bold flex items-center gap-2 transition-all ${activeTab === 'aktivasi' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              Aktivasi WhatsApp
-              {user.is_verified && user.is_verified < 2 && (
-                <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
-                </span>
-              )}
-            </button>
+          <div className="flex gap-8 mt-10 relative">
+            {['umum', 'aktivasi'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative cursor-pointer pb-4 text-sm font-bold transition-all ${activeTab === tab ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
+                  }`}
+              >
+                {tab === 'umum' ? 'Informasi Umum' : 'Aktivasi WhatsApp'}
+                {activeTab === tab && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                  />
+                )}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -134,22 +136,7 @@ export default function ProfilePage() {
               </section>
 
               {/* Akun Terdaftar */}
-              <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="p-6 bg-slate-50/50 border-b border-slate-100">
-                  <h3 className="text-sm font-bold text-slate-700">Akun & Saldo</h3>
-                </div>
-                <div className="divide-y divide-slate-100">
-                  <div className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                        <Wallet size={20} />
-                      </div>
-                      <span className="font-medium text-slate-600">Saldo Utama</span>
-                    </div>
-                    <span className="font-bold text-slate-900">Rp 5.250.000</span>
-                  </div>
-                </div>
-              </section>
+              <AccountSection />
             </div>
 
             {/* Sidebar info tambahan */}

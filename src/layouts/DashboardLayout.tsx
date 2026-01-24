@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
-import { LayoutDashboard, Wallet, ArrowDownCircle, LogOut, User, BookmarkPlus, MessageSquare, ChevronDown } from "lucide-react";
+import { LayoutDashboard, Wallet, ArrowDownCircle, LogOut, User, BookmarkPlus, ChevronDown } from "lucide-react";
 import { api } from "../helpers/axios";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "../helpers/query";
@@ -10,6 +10,7 @@ export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user)
+  const resetStore = useUserStore((state) => state.reset)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const { mutate, isPending } = useMutation({
@@ -17,7 +18,8 @@ export default function DashboardLayout() {
       return api.post("/ms_user/logout")
     },
     onSuccess: () => {
-      queryClient.removeQueries({ queryKey: ['profile_guard_layout'] })
+      queryClient.clear()
+      resetStore()
       navigate('/login', { replace: true })
     },
     onError: (err) => {
