@@ -1,17 +1,28 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, CreditCard, Save } from "lucide-react";
-import Input from "../components/Input";
+import { CreditCard, Plus, Save } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../helpers/axios";
 import UserAccountList from "../components/AccountPage/UserAccountList";
+import NewUserAccount from "../components/AccountPage/NewUserAccount";
+import type { IMsAccount } from "../types/msAccount";
 
 export default function AccountsPage() {
   const [isAdding, setIsAdding] = useState(false);
-  // State untuk menyimpan list akun yang akan ditambah
+
   const [newAccounts, setNewAccounts] = useState([
-    { id: Date.now(), bankName: "BCA", balance: "" }
+    { ms_account_code: "bca", amount: 0 }
   ]);
+
+  const addRow = () => {
+    setNewAccounts([...newAccounts, { ms_account_code: "bca", amount: 0 }]);
+  };
+
+  const removeRow = (id: number) => {
+    if (newAccounts.length > 1) {
+      setNewAccounts(newAccounts.filter((_, idx) => idx !== id));
+    }
+  };
 
   const { data: accountData } = useQuery({
     queryKey: ['ms_account_list'],
@@ -20,17 +31,9 @@ export default function AccountsPage() {
     refetchOnMount: false,
     refetchOnWindowFocus: false
   })
-  const msAccounts = accountData?.data.data || []
-
-  const addRow = () => {
-    setNewAccounts([...newAccounts, { id: Date.now(), bankName: "BCA", balance: "" }]);
-  };
-
-  const removeRow = (id: number) => {
-    if (newAccounts.length > 1) {
-      setNewAccounts(newAccounts.filter(acc => acc.id !== id));
-    }
-  };
+  const msAccounts = useMemo(() => {
+    return (accountData?.data?.data as IMsAccount[])?.map((item) => ({ value: item.ms_account_code, lable: item.ms_account_name }))
+  }, [accountData])
 
   return (
     <div className="space-y-6">
@@ -73,47 +76,18 @@ export default function AccountsPage() {
             </div>
 
             <div className="space-y-4">
-              <AnimatePresence>
-                {newAccounts.map((acc) => (
-                  <motion.div
-                    key={acc.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="flex flex-col md:flex-row items-end gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100"
-                  >
-                    <div className="w-full md:w-1/3">
-                      <label className="block mb-1.5 text-sm font-semibold text-slate-700">Nama Bank/App</label>
-                      <select className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition font-medium">
-                        {msAccounts.map((opt: any) => <option key={opt.ms_account_code}>{opt.ms_account_name}</option>)}
-                      </select>
-                    </div>
-
-                    <div className="w-full md:w-1/2">
-                      {/* Gunakan komponen Input currency yang kita buat sebelumnya */}
-                      <Input label="Saldo Awal" type="currency" placeholder="Rp 0" />
-                    </div>
-
-                    <button
-                      onClick={() => removeRow(acc.id)}
-                      className="p-3.5 text-red-500 hover:bg-red-50 rounded-xl transition"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+              <NewUserAccount options={msAccounts} removeRow={removeRow} newAccounts={newAccounts} />
 
               <button
                 onClick={addRow}
-                className="w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-bold hover:bg-slate-50 hover:border-blue-300 hover:text-blue-600 transition-all flex items-center justify-center gap-2"
+                className="cursor-pointer w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-bold hover:bg-slate-50 hover:border-blue-300 hover:text-blue-600 transition-all flex items-center justify-center gap-2"
               >
                 <Plus size={18} /> Tambah Baris Baru
               </button>
             </div>
 
             <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
-              <button className="flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all shadow-lg shadow-slate-200">
+              <button className="cursor-pointer flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all shadow-lg shadow-slate-200">
                 <Save size={18} /> Simpan Semua Akun
               </button>
             </div>
