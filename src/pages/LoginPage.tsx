@@ -7,7 +7,6 @@ import type { FormEvent } from "react";
 import SubmitButton from "../components/SubmitButton";
 import type { AxiosError, AxiosResponse } from "axios";
 import { toast } from "react-toastify";
-import useUserStore from "../store/user";
 
 interface IReqBody {
   email: string

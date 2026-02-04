@@ -1,18 +1,46 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CreditCard, Plus, Save } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "../helpers/axios";
 import UserAccountList from "../components/AccountPage/UserAccountList";
 import NewUserAccount from "../components/AccountPage/NewUserAccount";
 import type { IMsAccount } from "../types/msAccount";
+import { toast } from "react-toastify";
+import { queryClient } from "../helpers/query";
+
+export interface INewUserAccount {
+  ms_account_code?: string
+  amount: number
+}
 
 export default function AccountsPage() {
   const [isAdding, setIsAdding] = useState(false);
-
-  const [newAccounts, setNewAccounts] = useState([
-    { ms_account_code: "bca", amount: 0 }
+  const [newAccounts, setNewAccounts] = useState<INewUserAccount[]>([
+    { ms_account_code: undefined, amount: 0 }
   ]);
+  const { mutate: bulkCreate } = useMutation({
+    mutationFn: (reqBody: INewUserAccount[]) => api.post('/user_account/bulk_create', reqBody),
+    onSuccess: () => {
+      setIsAdding(false)
+      setNewAccounts([{ ms_account_code: undefined, amount: 0 }])
+      queryClient.invalidateQueries({ queryKey: ['user_account'], refetchType: 'all' })
+      toast.success('your accounts created succesfully')
+    },
+    onError: (err) => {
+      console.log(err)
+    }
+  })
+
+  const handleSubmit = () => {
+    for (let i = 0; i < newAccounts.length; i++) {
+      if (!newAccounts[i].ms_account_code) {
+        toast.error("please fulfill yang bank information")
+        return
+      }
+    }
+    bulkCreate(newAccounts)
+  }
 
   const addRow = () => {
     setNewAccounts([...newAccounts, { ms_account_code: "bca", amount: 0 }]);
@@ -32,7 +60,7 @@ export default function AccountsPage() {
     refetchOnWindowFocus: false
   })
   const msAccounts = useMemo(() => {
-    return (accountData?.data?.data as IMsAccount[])?.map((item) => ({ value: item.ms_account_code, lable: item.ms_account_name }))
+    return (accountData?.data?.data as IMsAccount[])?.map((item) => ({ value: item.ms_account_code, label: item.ms_account_name }))
   }, [accountData])
 
   return (
@@ -76,7 +104,11 @@ export default function AccountsPage() {
             </div>
 
             <div className="space-y-4">
-              <NewUserAccount options={msAccounts} removeRow={removeRow} newAccounts={newAccounts} />
+              <AnimatePresence mode="popLayout">
+                {newAccounts.map((_, idx) => (
+                  <NewUserAccount setNewAccounts={setNewAccounts} newAccounts={newAccounts} idx={idx} key={idx} options={msAccounts} removeRow={removeRow} />
+                ))}
+              </AnimatePresence>
 
               <button
                 onClick={addRow}
@@ -87,7 +119,7 @@ export default function AccountsPage() {
             </div>
 
             <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
-              <button className="cursor-pointer flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all shadow-lg shadow-slate-200">
+              <button onClick={handleSubmit} className="cursor-pointer flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all shadow-lg shadow-slate-200">
                 <Save size={18} /> Simpan Semua Akun
               </button>
             </div>

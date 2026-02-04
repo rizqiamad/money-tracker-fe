@@ -27,8 +27,8 @@ export default function UserAccountList() {
       animate={{ opacity: 1 }}
       className="grid grid-cols-1 md:grid-cols-3 gap-6"
     >
-      {userAccounts.map((item) => (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
+      {userAccounts.map((item, idx) => (
+        <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-700" />
           <p className="text-sm text-slate-500 font-medium">{item.ms_account_name}</p>
           <h3 className="text-xl font-bold text-slate-800 mt-1">{formatIDR(item.amount)}</h3>

@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Eye, EyeOff, TrendingUp, Wallet2 } from "lucide-react";
 import { ACCOUNT_MAPPER } from "./AccountMapper";
-import { formatIDR } from "../helpers/format";
+import { formatIDR } from "../../helpers/format";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../helpers/axios";
+import { api } from "../../helpers/axios";
 
 export default function AccountSection() {
   const [isHidden, setIsHidden] = useState<boolean>(true);
@@ -91,7 +91,7 @@ export default function AccountSection() {
             </div>
           ) : (
             accounts.map((item: any, index: number) => {
-              const config = ACCOUNT_MAPPER[item.ms_account_code] || ACCOUNT_MAPPER.DEFAULT;
+              const config = ACCOUNT_MAPPER[item.ms_account_code] || ACCOUNT_MAPPER['default'];
               return (
                 <motion.div
                   key={index}

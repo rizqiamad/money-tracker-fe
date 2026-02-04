@@ -5,7 +5,7 @@ import { api } from '../helpers/axios';
 import { queryClient } from '../helpers/query';
 import { useNavigate } from 'react-router';
 import useUserStore from '../store/user';
-import AccountSection from '../components/AccountSection';
+import AccountSection from '../components/ProfilePage/AccountSection';
 import { motion } from "framer-motion";
 
 export default function ProfilePage() {
