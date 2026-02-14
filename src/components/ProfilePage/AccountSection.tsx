@@ -6,22 +6,25 @@ import { formatIDR } from "../../helpers/format";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../helpers/axios";
+import type { IUserAccount } from "../../types/userAccount";
+
+const fetchUserAccount = async () => {
+  const { data } = await api.post('/user_account/list')
+  const userAccountData = data.data as IUserAccount[]
+  return userAccountData || []
+}
 
 export default function AccountSection() {
   const [isHidden, setIsHidden] = useState<boolean>(true);
 
-  const { data, isLoading } = useQuery({
+  const { data: accounts, isLoading } = useQuery({
     queryKey: ['user_account', 'list'],
-    queryFn: () => api.post('/user_account/list'),
+    queryFn: fetchUserAccount,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    staleTime: Infinity
   });
 
-  const accounts = data?.data?.data || [];
-
   const totalBalance = useMemo(() => {
-    return accounts.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0;
+    return accounts?.reduce((acc: number, curr: any) => acc + curr.amount, 0) || 0;
   }, [accounts]);
 
   // 1. LOADING STATE
@@ -58,7 +61,7 @@ export default function AccountSection() {
           </div>
           <div className="mt-6 flex gap-4">
             <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-semibold">
-              {accounts.length} Akun Terhubung
+              {accounts?.length} Akun Terhubung
             </div>
           </div>
         </div>
@@ -82,7 +85,7 @@ export default function AccountSection() {
 
         <div className="p-2">
           {/* 2. EMPTY STATE LOGIC */}
-          {accounts.length === 0 ? (
+          {accounts?.length === 0 ? (
             <div className="py-12 px-6 flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center mb-4">
                 <Wallet2 size={32} />
@@ -90,7 +93,7 @@ export default function AccountSection() {
               <h4 className="text-slate-900 font-bold">Belum Ada Akun</h4>
             </div>
           ) : (
-            accounts.map((item: any, index: number) => {
+            accounts?.map((item: any, index: number) => {
               const config = ACCOUNT_MAPPER[item.ms_account_code] || ACCOUNT_MAPPER['default'];
               return (
                 <motion.div

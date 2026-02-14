@@ -5,3 +5,9 @@ export const formatIDR = (val: number) =>
     maximumFractionDigits: 0,
     minimumFractionDigits: 0,
   }).format(val);
+
+export const formatAngka = (value: string) => {
+  if (!value) return "";
+  const numberString = value.replace(/[^,\d]/g, "");
+  return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};

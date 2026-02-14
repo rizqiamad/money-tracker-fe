@@ -3,12 +3,13 @@ import { Trash2 } from "lucide-react";
 import Select from 'react-select';
 import { useEffect, useState } from "react";
 import type { INewUserAccount } from "../../pages/AccountPage";
+import { formatAngka } from "../../helpers/format";
 
 interface IProps {
   idx: number,
   setNewAccounts: (val: INewUserAccount[]) => void
   newAccounts: INewUserAccount[]
-  options: { value: string, label: string }[]
+  options?: { value: string, label: string }[]
   removeRow: (id: number) => void
 }
 
@@ -22,13 +23,6 @@ export default function NewUserAccount({ options, setNewAccounts, newAccounts, r
     const newData = [...newAccounts]
     setNewAccounts(newData)
   }, [selectedOption, amounts])
-
-  // Fungsi helper untuk format titik (ribuan)
-  const formatRupiah = (value: string) => {
-    if (!value) return "";
-    const numberString = value.replace(/[^,\d]/g, ""); // Bersihkan karakter non-angka
-    return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, "."); // Tambah titik tiap 3 angka
-  };
 
   const handleInputChange = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\./g, ""); // Hapus titik untuk simpan angka mentah
@@ -71,7 +65,7 @@ export default function NewUserAccount({ options, setNewAccounts, newAccounts, r
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">Rp</span>
           <input
             type="text" // Kita pakai text agar bisa input titik
-            value={formatRupiah(amounts[idx] || "")}
+            value={formatAngka(amounts[idx] || "")}
             onChange={(e) => handleInputChange(idx, e)}
             placeholder="0"
             className="w-full pl-11 pr-4 py-1.75 bg-slate-50 border-2 border-slate-100 rounded-xl 

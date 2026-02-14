@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CreditCard, Plus, Save } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -12,6 +12,12 @@ import { queryClient } from "../helpers/query";
 export interface INewUserAccount {
   ms_account_code?: string
   amount: number
+}
+
+const fetcUserAccounts = async () => {
+  const { data } = await api.post('/ms_account/list')
+  const accountData = (data?.data as IMsAccount[]).map((item) => ({ value: item.ms_account_code, label: item.ms_account_name }))
+  return accountData || []
 }
 
 export default function AccountsPage() {
@@ -52,16 +58,13 @@ export default function AccountsPage() {
     }
   };
 
-  const { data: accountData } = useQuery({
+  const { data: msAccounts } = useQuery({
     queryKey: ['ms_account_list'],
-    queryFn: () => api.post('/ms_account/list'),
+    queryFn: fetcUserAccounts,
     staleTime: Infinity,
     refetchOnMount: false,
     refetchOnWindowFocus: false
   })
-  const msAccounts = useMemo(() => {
-    return (accountData?.data?.data as IMsAccount[])?.map((item) => ({ value: item.ms_account_code, label: item.ms_account_name }))
-  }, [accountData])
 
   return (
     <div className="space-y-6">
