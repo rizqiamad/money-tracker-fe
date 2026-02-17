@@ -15,6 +15,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import { queryClient } from "./helpers/query";
 import ProfilePage from "./pages/ProfilePage";
 import GuardLayout from "./layouts/GuardLayout";
+import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
   return (
@@ -48,6 +49,8 @@ export default function App() {
             </Route>
 
           </Route>
+
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
