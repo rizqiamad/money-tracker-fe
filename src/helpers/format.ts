@@ -19,3 +19,10 @@ export const formatDateOnly = (date: Date) => {
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
+
+export const formatDate = (dateStr: string) =>
+  new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
