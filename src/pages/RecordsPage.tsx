@@ -1,6 +1,7 @@
 import {
   Download, TrendingUp, TrendingDown, ArrowRightLeft,
-  Search, SlidersHorizontal, ChevronDown, Receipt
+  Search, SlidersHorizontal, ChevronDown, Receipt,
+  X
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +16,7 @@ import { api } from "../helpers/axios";
 import { useQuery } from "@tanstack/react-query";
 import type { IResponse } from "../types/response";
 import DatePicker from "react-datepicker";
+import { useDebounce } from 'use-debounce';
 
 const fetchRecord = async (payload: IListRecordPayload) => {
   const { data } = await api.post('/record/list', payload)
@@ -22,17 +24,18 @@ const fetchRecord = async (payload: IListRecordPayload) => {
 };
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-export default function ReportsPage() {
+export default function RecordsPage() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [filterType, setFilterType] = useState<RecordType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [search] = useDebounce(searchQuery, 1000);
   const [showFilter, setShowFilter] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(5);
 
   const { data: recordData } = useQuery({
-    queryKey: ['record', 'list', perPage, currentPage],
-    queryFn: () => fetchRecord({ limit: perPage, current: currentPage, type: filterType != 'all' ? filterType : undefined }),
+    queryKey: ['record', 'list', perPage, currentPage, filterType, search],
+    queryFn: () => fetchRecord({ limit: perPage, current: currentPage, search, type: filterType != 'all' ? filterType : undefined }),
     refetchOnWindowFocus: false
   })
 
@@ -47,17 +50,6 @@ export default function ReportsPage() {
     const transfer = recordData?.data.filter(t => t.type === "transfer").reduce((s, t) => s + Number(t.amount), 0) ?? 0;
     return { income, expense, transfer, net: income - expense };
   }, [recordData]);
-
-  // const handleExport = () => {
-  //   const header = ["Tanggal", "Tipe", "Kategori", "Akun", "Ke Akun", "Catatan", "Jumlah"];
-  //   const rows = filtered.map(tx => [tx.date_action, tx.type, tx.sub_category_name ?? "-", tx.from_user_account_name ?? "-", tx.to_user_account_name ?? "-", tx.description, tx.amount]);
-  //   const csv = [header, ...rows].map(r => r.join(",")).join("\n");
-  //   const blob = new Blob([csv], { type: "text/csv" });
-  //   const url = URL.createObjectURL(blob);
-  //   const a = document.createElement("a");
-  //   a.href = url; a.download = `laporan_${selectedMonth}.csv`; a.click();
-  //   URL.revokeObjectURL(url);
-  // };
 
   const filterTabs: { id: RecordType | "all"; label: string }[] = [
     { id: "all", label: "Semua" }, { id: "expense", label: "Pengeluaran" },
@@ -75,6 +67,7 @@ export default function ReportsPage() {
         </div>
         <div className="flex items-center gap-2">
           <DatePicker
+            rangeSeparator="-"
             selected={selectedMonth}
             onChange={(date: any) => date && setSelectedMonth(date)}
             dateFormat="MMMM yyyy"
@@ -131,8 +124,16 @@ export default function ReportsPage() {
             <input
               type="text" placeholder="Cari catatan, kategori, akun..."
               value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition placeholder:text-slate-400"
+              className="w-full pl-10 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition placeholder:text-slate-400"
             />
+            {searchQuery && (
+              <button
+                onClick={() => handleSearchChange("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
           <button
             onClick={() => setShowFilter(!showFilter)}

@@ -33,6 +33,7 @@ export interface IListRecordPayload {
   date_action?: string;
   sub_category_code?: string;
   description?: string;
+  search?: string;
   order_by_name?: string;
   order_by_value?: "asc" | "desc";
   current?: number;

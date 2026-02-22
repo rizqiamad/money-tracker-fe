@@ -6,7 +6,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import DashboardPage from "./pages/DashboardPage";
 import InputTransactionPage from "./pages/InputTransactionPage";
 import AccountsPage from "./pages/AccountPage";
-import ReportsPage from "./pages/ReportsPage";
+import RecordsPage from "./pages/RecordsPage";
 import { QueryClientProvider } from "@tanstack/react-query";
 import VerifyOtpPage from "./pages/VerifyOtpPage";
 import MainLayout from "./layouts/MainLayout";
@@ -42,7 +42,7 @@ export default function App() {
                 <Route index element={<DashboardPage />} />
                 <Route path="transactions" element={<InputTransactionPage />} />
                 <Route path="account" element={<AccountsPage />} />
-                <Route path="reports" element={<ReportsPage />} />
+                <Route path="records" element={<RecordsPage />} />
               </Route>
 
               <Route path="profile" element={<ProfilePage />} />

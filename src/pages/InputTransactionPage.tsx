@@ -80,7 +80,7 @@ export default function InputTransactionPage() {
     }
   })
 
-  const { mutate: recordMutate } = useMutation({
+  const { mutate: recordMutate, isPending: recordMutatePending } = useMutation({
     mutationFn: fetchRecord,
     onSuccess: (data) => {
       toast.success(data.message)
@@ -220,6 +220,8 @@ export default function InputTransactionPage() {
               showMonthDropdown
               showYearDropdown
               dropdownMode="select"
+              required
+              shouldCloseOnSelect
             >
               <div className="flex gap-2 p-2 border-t border-slate-100">
                 <button
@@ -273,6 +275,32 @@ export default function InputTransactionPage() {
                   ))}
                 </div>
 
+                {/* ACCOUNT SELECT */}
+                <div className="space-y-1.5">
+                  <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                    <Wallet size={12} /> Akun
+                  </label>
+                  <CreatableSelect
+                    placeholder="Pilih Akun..."
+                    options={accounts}
+                    value={selectedAccount}
+                    onChange={setSelectedAccount}
+                    styles={customSelectStyles}
+                    isValidNewOption={() => false}
+                    noOptionsMessage={() => (
+                      <div className="flex flex-col items-center p-4 space-y-2">
+                        <p className="text-sm text-slate-500">Akun tidak ditemukan</p>
+                        <button
+                          onClick={() => navigate("/dashboard/account")}
+                          className="cursor-pointer text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+                        >
+                          + Tambah Akun Baru
+                        </button>
+                      </div>
+                    )}
+                  />
+                </div>
+
                 {/* NOMINAL */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Nominal</label>
@@ -282,6 +310,8 @@ export default function InputTransactionPage() {
                       type="text"
                       value={formatAngka(amount)}
                       onChange={handleInputChange}
+                      required
+                      onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("Nama tidak boleh kosong")}
                       placeholder="0"
                       className="w-full pl-12 pr-4 py-1.5 text-lg font-semibold placeholder:text-slate-400 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                     />
@@ -359,32 +389,6 @@ export default function InputTransactionPage() {
                     </motion.div>
                   )}
                 </div>
-
-                {/* ACCOUNT SELECT */}
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
-                    <Wallet size={12} /> Akun
-                  </label>
-                  <CreatableSelect
-                    placeholder="Pilih Akun..."
-                    options={accounts}
-                    value={selectedAccount}
-                    onChange={setSelectedAccount}
-                    styles={customSelectStyles}
-                    isValidNewOption={() => false}
-                    noOptionsMessage={() => (
-                      <div className="flex flex-col items-center p-4 space-y-2">
-                        <p className="text-sm text-slate-500">Akun tidak ditemukan</p>
-                        <button
-                          onClick={() => navigate("/dashboard/account")}
-                          className="cursor-pointer text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
-                        >
-                          + Tambah Akun Baru
-                        </button>
-                      </div>
-                    )}
-                  />
-                </div>
               </motion.div>
             ) : (
               /* MODE TRANSFER */
@@ -456,6 +460,7 @@ export default function InputTransactionPage() {
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
+            disabled={recordMutatePending}
             className={`
           cursor-pointer w-full py-4 rounded-2xl font-bold text-white shadow-lg shadow-blue-500/20 transition-all mt-4 flex justify-center items-center gap-2
           ${mainMode === "transfer" ? "bg-slate-800 hover:bg-slate-900" : "bg-blue-600 hover:bg-blue-700"}

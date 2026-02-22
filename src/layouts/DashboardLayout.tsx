@@ -37,7 +37,7 @@ export default function DashboardLayout() {
     { name: "Overview", path: "/dashboard", icon: <LayoutDashboard size={20} /> },
     { name: "Account", path: "/dashboard/account", icon: <BookmarkPlus size={20} /> },
     { name: "Transaction", path: "/dashboard/transactions", icon: <Wallet size={20} /> },
-    { name: "Reports", path: "/dashboard/reports", icon: <ArrowDownCircle size={20} /> },
+    { name: "Records", path: "/dashboard/records", icon: <ArrowDownCircle size={20} /> },
   ];
 
   const SidebarContent = () => (
@@ -53,8 +53,8 @@ export default function DashboardLayout() {
           return (
             <Link key={item.path} to={item.path}>
               <div className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-100"
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                ? "bg-blue-600 text-white shadow-md shadow-blue-100"
+                : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
                 }`}>
                 {item.icon}
                 {item.name}
