@@ -102,13 +102,56 @@ export default function InputTransactionPage() {
     })
   }
 
+  // ── Derived theme tokens ───────────────────────────────────────────────────
+  const isTransfer = mainMode === "transfer";
+  const isExpense  = !isTransfer && subMode === "expense";
+  const isIncome   = !isTransfer && subMode === "income";
+
+  // Hero card gradient & text
+  const heroBg = isTransfer
+    ? "bg-gradient-to-br from-slate-700 to-slate-800 border-slate-600"
+    : isExpense
+      ? "bg-gradient-to-br from-rose-500 to-red-600 border-rose-400"
+      : "bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-400";
+
+  // Submit button
+  const submitBg = isTransfer
+    ? "bg-slate-800 hover:bg-slate-900 shadow-slate-800/20"
+    : isExpense
+      ? "bg-rose-500 hover:bg-rose-600 shadow-rose-500/25"
+      : "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/25";
+
+  // Sub-mode pill styles
+  const pillExpense = subMode === "expense"
+    ? "bg-white/20 border-white/30 text-white"
+    : "bg-transparent border-white/15 text-white/45 hover:text-white/70 hover:bg-white/10";
+  const pillIncome = subMode === "income"
+    ? "bg-white/20 border-white/30 text-white"
+    : "bg-transparent border-white/15 text-white/45 hover:text-white/70 hover:bg-white/10";
+
+  // Icon accent for detail rows
+  const iconAccent = isTransfer
+    ? "bg-slate-100 border-slate-200 text-slate-400"
+    : isExpense
+      ? "bg-rose-50 border-rose-100 text-rose-400"
+      : "bg-emerald-50 border-emerald-100 text-emerald-500";
+
+  // Label accent
+  const labelColor = isTransfer
+    ? "text-slate-400"
+    : isExpense
+      ? "text-rose-400"
+      : "text-emerald-500";
+
+  // Select styles — consistent with rest of app but accent-colored focus
+  const focusColor = isTransfer ? "#64748b" : isExpense ? "#f43f5e" : "#10b981";
   const selectStyles = {
     control: (base: any, state: any) => ({
       ...base,
       padding: "2px 4px",
       borderRadius: "0.75rem",
-      borderColor: state.isFocused ? "#3b82f6" : "#e2e8f0",
-      boxShadow: state.isFocused ? "0 0 0 2px rgba(59,130,246,0.15)" : "none",
+      borderColor: state.isFocused ? focusColor : "#e2e8f0",
+      boxShadow: state.isFocused ? `0 0 0 2px ${focusColor}25` : "none",
       backgroundColor: "#f8fafc",
       "&:hover": { borderColor: "#cbd5e1" },
     }),
@@ -123,24 +166,6 @@ export default function InputTransactionPage() {
     input: (base: any) => ({ ...base, "input:focus": { boxShadow: "none" } }),
     indicatorSeparator: () => ({ display: "none" }),
   };
-
-  const amountBg =
-    mainMode === "transfer" ? "bg-slate-100 border-slate-200" :
-      subMode === "expense" ? "bg-blue-600 border-blue-500" :
-        "bg-blue-50 border-blue-100";
-
-  const submitBg =
-    mainMode === "transfer" ? "bg-slate-800 hover:bg-slate-900" :
-      subMode === "expense" ? "bg-blue-600 hover:bg-blue-700" :
-        "bg-blue-600 hover:bg-blue-700";
-
-  const pillActive = subMode === "expense"
-    ? "bg-red/20 border-red/30 text-white"
-    : "bg-blue-600 border-blue-600 text-white";
-
-  const pillInactive = subMode === "expense"
-    ? "bg-transparent border-white/10 text-white/40 hover:text-white/70"
-    : "bg-transparent border-blue-200 text-blue-300 hover:text-blue-500";
 
   return (
     <div className="space-y-5">
@@ -160,8 +185,9 @@ export default function InputTransactionPage() {
             <button
               key={m.id}
               onClick={() => { setMainMode(m.id as any); setAmount(""); setNote(""); setSelectedMainCategory(null); }}
-              className={`cursor-pointer flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${mainMode === m.id ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                }`}
+              className={`cursor-pointer flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
+                mainMode === m.id ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
             >
               <m.icon size={15} strokeWidth={2.5} /> {m.label}
             </button>
@@ -171,17 +197,19 @@ export default function InputTransactionPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
 
-        {/* ── Amount hero ── */}
-        <motion.div layout className={`rounded-2xl border p-6 transition-colors duration-300 ${amountBg}`}>
+        {/* ── Amount Hero ── */}
+        <motion.div layout className={`rounded-2xl border p-6 transition-colors duration-300 ${heroBg}`}>
           <AnimatePresence mode="wait">
             {mainMode === "record" && (
               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex gap-2 mb-5">
                 {[
                   { id: "expense", label: "Pengeluaran", icon: Minus },
-                  { id: "income", label: "Pemasukan", icon: Plus },
+                  { id: "income",  label: "Pemasukan",   icon: Plus  },
                 ].map((t) => (
                   <button key={t.id} type="button" onClick={() => setSubMode(t.id as any)}
-                    className={`cursor-pointer flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${subMode === t.id ? pillActive : pillInactive}`}
+                    className={`cursor-pointer flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                      t.id === "expense" ? pillExpense : pillIncome
+                    }`}
                   >
                     <t.icon size={11} strokeWidth={3} /> {t.label}
                   </button>
@@ -189,31 +217,32 @@ export default function InputTransactionPage() {
               </motion.div>
             )}
           </AnimatePresence>
-          <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${subMode === "expense" ? "text-white/70" : "text-blue-500"}`}>
-            {mainMode === "transfer" ? "Jumlah Transfer" : "Nominal"}
+
+          <p className="text-xs font-bold uppercase tracking-widest mb-1 text-white/60">
+            {isTransfer ? "Jumlah Transfer" : "Nominal"}
           </p>
           <div className="flex items-baseline gap-2">
-            <span className={`text-xl font-bold ${subMode === "expense" ? "text-white/70" : "text-blue-500"}`}>Rp</span>
+            <span className="text-xl font-bold text-white/70">Rp</span>
             <input
               type="text"
               value={formatAngka(amount)}
               onChange={handleInputChange}
               placeholder="0"
-              className={`flex-1 text-4xl font-black bg-transparent outline-none tabular-nums ${subMode === "expense" ? "text-white placeholder:text-white/20" : "text-blue-500 placeholder:text-blue-200"}`}
+              className="flex-1 text-4xl font-black bg-transparent outline-none tabular-nums text-white placeholder:text-white/25"
             />
           </div>
         </motion.div>
 
-        {/* ── Detail rows ── */}
+        {/* ── Detail Rows ── */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
 
           {/* Date */}
           <div className="flex items-center gap-4 px-5 py-4">
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 shrink-0">
-              <Calendar size={15} className="text-slate-400" />
+            <div className={`p-2 rounded-xl border shrink-0 ${iconAccent}`}>
+              <Calendar size={15} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Tanggal</p>
+              <p className={`text-[11px] font-bold uppercase tracking-wider mb-0.5 ${labelColor}`}>Tanggal</p>
               <DatePicker
                 selected={date}
                 onChange={(d: any) => setDate(d)}
@@ -242,11 +271,11 @@ export default function InputTransactionPage() {
 
                 {/* Account */}
                 <div className="flex items-start gap-4 px-5 py-4">
-                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 shrink-0 mt-1">
-                    <Wallet size={15} className="text-slate-400" />
+                  <div className={`p-2 rounded-xl border shrink-0 mt-1 ${iconAccent}`}>
+                    <Wallet size={15} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Akun</p>
+                    <p className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 ${labelColor}`}>Akun</p>
                     <CreatableSelect
                       placeholder="Pilih akun..."
                       options={accounts} value={selectedAccount} onChange={setSelectedAccount}
@@ -265,12 +294,12 @@ export default function InputTransactionPage() {
 
                 {/* Category */}
                 <div className="flex items-start gap-4 px-5 py-4">
-                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 shrink-0 mt-1">
-                    <Tag size={15} className="text-slate-400" />
+                  <div className={`p-2 rounded-xl border shrink-0 mt-1 ${iconAccent}`}>
+                    <Tag size={15} />
                   </div>
                   <div className="flex-1 min-w-0 space-y-3">
                     <div>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Kategori</p>
+                      <p className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 ${labelColor}`}>Kategori</p>
                       <CreatableSelect
                         placeholder="Pilih kategori utama..."
                         options={categories} value={selectedMainCategory} onChange={handleMainCategoryChange}
@@ -283,7 +312,7 @@ export default function InputTransactionPage() {
                     <AnimatePresence>
                       {selectedMainCategory && availableSubCategories.length > 0 && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                          <p className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1 ${labelColor}`}>
                             <ChevronRight size={10} /> Sub Kategori
                           </p>
                           <CreatableSelect
@@ -300,11 +329,13 @@ export default function InputTransactionPage() {
                     <AnimatePresence>
                       {selectedMainCategory && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                          className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold"
+                          className={`flex items-center gap-1.5 text-xs font-semibold ${
+                            isExpense ? "text-rose-500" : "text-emerald-600"
+                          }`}
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isExpense ? "bg-rose-500" : "bg-emerald-500"}`} />
                           {selectedMainCategory.label}
-                          {selectedSubCategory && <><ChevronRight size={11} className="text-blue-400" />{selectedSubCategory.label}</>}
+                          {selectedSubCategory && <><ChevronRight size={11} className="opacity-60" />{selectedSubCategory.label}</>}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -314,8 +345,8 @@ export default function InputTransactionPage() {
             ) : (
               <motion.div key="transfer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <div className="flex items-start gap-4 px-5 py-4">
-                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 shrink-0 mt-1">
-                    <Wallet size={15} className="text-slate-400" />
+                  <div className="p-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 shrink-0 mt-1">
+                    <Wallet size={15} />
                   </div>
                   <div className="flex-1 space-y-3">
                     <div>
@@ -324,8 +355,8 @@ export default function InputTransactionPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex-1 h-px bg-slate-100" />
-                      <div className="p-1.5 rounded-full bg-blue-50 border border-blue-100">
-                        <ArrowRightLeft size={12} className="text-blue-400" />
+                      <div className="p-1.5 rounded-full bg-slate-100 border border-slate-200">
+                        <ArrowRightLeft size={12} className="text-slate-400" />
                       </div>
                       <div className="flex-1 h-px bg-slate-100" />
                     </div>
@@ -341,11 +372,11 @@ export default function InputTransactionPage() {
 
           {/* Note */}
           <div className="flex items-start gap-4 px-5 py-4">
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 shrink-0 mt-1">
-              <PenLine size={15} className="text-slate-400" />
+            <div className={`p-2 rounded-xl border shrink-0 mt-1 ${iconAccent}`}>
+              <PenLine size={15} />
             </div>
             <div className="flex-1">
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Catatan (Opsional)</p>
+              <p className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 ${labelColor}`}>Catatan (Opsional)</p>
               <textarea
                 rows={2}
                 value={note}
@@ -361,7 +392,7 @@ export default function InputTransactionPage() {
         <motion.button
           whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
           disabled={recordMutatePending}
-          className={`cursor-pointer w-full py-4 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-60 ${submitBg}`}
+          className={`cursor-pointer w-full py-4 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all shadow-lg disabled:opacity-60 ${submitBg}`}
         >
           {recordMutatePending
             ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
