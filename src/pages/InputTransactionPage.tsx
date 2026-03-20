@@ -104,8 +104,8 @@ export default function InputTransactionPage() {
 
   // ── Derived theme tokens ───────────────────────────────────────────────────
   const isTransfer = mainMode === "transfer";
-  const isExpense  = !isTransfer && subMode === "expense";
-  const isIncome   = !isTransfer && subMode === "income";
+  const isExpense = !isTransfer && subMode === "expense";
+  // const isIncome   = !isTransfer && subMode === "income";
 
   // Hero card gradient & text
   const heroBg = isTransfer
@@ -185,9 +185,8 @@ export default function InputTransactionPage() {
             <button
               key={m.id}
               onClick={() => { setMainMode(m.id as any); setAmount(""); setNote(""); setSelectedMainCategory(null); }}
-              className={`cursor-pointer flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
-                mainMode === m.id ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              }`}
+              className={`cursor-pointer flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${mainMode === m.id ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                }`}
             >
               <m.icon size={15} strokeWidth={2.5} /> {m.label}
             </button>
@@ -204,12 +203,11 @@ export default function InputTransactionPage() {
               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex gap-2 mb-5">
                 {[
                   { id: "expense", label: "Pengeluaran", icon: Minus },
-                  { id: "income",  label: "Pemasukan",   icon: Plus  },
+                  { id: "income", label: "Pemasukan", icon: Plus },
                 ].map((t) => (
                   <button key={t.id} type="button" onClick={() => setSubMode(t.id as any)}
-                    className={`cursor-pointer flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                      t.id === "expense" ? pillExpense : pillIncome
-                    }`}
+                    className={`cursor-pointer flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${t.id === "expense" ? pillExpense : pillIncome
+                      }`}
                   >
                     <t.icon size={11} strokeWidth={3} /> {t.label}
                   </button>
@@ -329,9 +327,8 @@ export default function InputTransactionPage() {
                     <AnimatePresence>
                       {selectedMainCategory && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                          className={`flex items-center gap-1.5 text-xs font-semibold ${
-                            isExpense ? "text-rose-500" : "text-emerald-600"
-                          }`}
+                          className={`flex items-center gap-1.5 text-xs font-semibold ${isExpense ? "text-rose-500" : "text-emerald-600"
+                            }`}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isExpense ? "bg-rose-500" : "bg-emerald-500"}`} />
                           {selectedMainCategory.label}
