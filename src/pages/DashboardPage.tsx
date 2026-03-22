@@ -1,319 +1,462 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
+  AreaChart, Area, XAxis, YAxis, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell
 } from "recharts";
-import {
-  TrendingUp, TrendingDown, ArrowRightLeft, Wallet,
-  ArrowUpRight, ArrowDownRight, CalendarDays, ChevronRight
-} from "lucide-react";
+import { Wallet, CalendarDays, ChevronRight } from "lucide-react";
+import { fmtShort, formatDate, formatIDR } from "../helpers/format";
+import { Link } from "react-router";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import AccountCard from "../components/DashboardPage/AccountCard";
+import type { IUserAccount } from "../types/userAccount";
+import { api } from "../helpers/axios";
+import { useQuery } from "@tanstack/react-query";
+import CustomTooltip from "../components/DashboardPage/CustomTooltip";
 
 // ── Mock Data ──────────────────────────────────────────────────────────────────
 
-const cashflowData = [
-  { month: "Agu", income: 5200000, expense: 2800000 },
-  { month: "Sep", income: 4800000, expense: 3100000 },
-  { month: "Okt", income: 6100000, expense: 2600000 },
-  { month: "Nov", income: 5500000, expense: 3400000 },
-  { month: "Des", income: 7200000, expense: 4100000 },
-  { month: "Jan", income: 4200000, expense: 1850000 },
+const date_summary = [
+  {
+      date_action: "2026-02-11",
+      income: 0,
+      expense: 138500
+  },
+  {
+      date_action: "2026-02-22",
+      income: 0,
+      expense: 411000
+  },
+  {
+      date_action: "2026-03-21",
+      income: 10000000,
+      expense: 0
+  }
 ];
 
-const expenseBreakdown = [
-  { name: "Makanan", value: 620000, color: "#f97316" },
-  { name: "Tagihan", value: 450000, color: "#3b82f6" },
-  { name: "Transport", value: 280000, color: "#8b5cf6" },
-  { name: "Hiburan", value: 310000, color: "#ec4899" },
-  { name: "Lainnya", value: 190000, color: "#14b8a6" },
+const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+const income_summary: any[] = [];
+
+const expense_summary = [
+  {
+    amount: 138500,
+    ms_category_code: "E001",
+    ms_category_name: "Equipment"
+  },
+  {
+    amount: 200000,
+    ms_category_code: "F001",
+    ms_category_name: "Food & Beverage"
+  },
+  {
+    amount: 211000,
+    ms_category_code: "L001",
+    ms_category_name: "Lifestyle"
+  }
 ];
 
 const recentTransactions = [
-  { id: 1, name: "Pembayaran Listrik", category: "Tagihan", date: "22 Jan 2026", amount: -250000, icon: "⚡" },
-  { id: 2, name: "Gaji Januari", category: "Pemasukan", date: "20 Jan 2026", amount: 4200000, icon: "💰" },
-  { id: 3, name: "Makan Siang", category: "Makanan", date: "19 Jan 2026", amount: -45000, icon: "🍜" },
-  { id: 4, name: "Netflix", category: "Hiburan", date: "18 Jan 2026", amount: -54000, icon: "🎬" },
-  { id: 5, name: "Transfer ke Tabungan", category: "Transfer", date: "17 Jan 2026", amount: -500000, icon: "🏦" },
+  {
+    id: 44,
+    from_user_account_id: 10,
+    amount: "138500",
+    description: "",
+    created_at: "2026-03-20T10:16:56.462Z",
+    to_user_account_id: null,
+    type: "expense",
+    date_action: "2026-02-11",
+    sub_category_code: "TE001",
+    from_user_account_name: "bsi",
+    to_user_account_name: null,
+    sub_category_name: "Tools"
+  },
+  {
+    id: 43,
+    from_user_account_id: 9,
+    amount: "200000",
+    description: "makan bareng keluarga",
+    created_at: "2026-02-22T06:39:33.726Z",
+    to_user_account_id: null,
+    type: "expense",
+    date_action: "2026-02-22",
+    sub_category_code: "DF001",
+    from_user_account_name: "bca",
+    to_user_account_name: null,
+    sub_category_name: "Dinner"
+  },
+  {
+    id: 42,
+    from_user_account_id: 10,
+    amount: "211000",
+    description: "padel",
+    created_at: "2026-02-22T01:59:28.390Z",
+    to_user_account_id: null,
+    type: "expense",
+    date_action: "2026-02-22",
+    sub_category_code: "HL001",
+    from_user_account_name: "bsi",
+    to_user_account_name: null,
+    sub_category_name: "Hobby"
+  },
+  {
+    id: 45,
+    from_user_account_id: 10,
+    amount: "10000000",
+    description: "",
+    created_at: "2026-03-21T15:35:52.981Z",
+    to_user_account_id: null,
+    type: "income",
+    date_action: "2026-03-21",
+    sub_category_code: "FS001",
+    from_user_account_name: "bsi",
+    to_user_account_name: null,
+    sub_category_name: "Freelance"
+  },
+  {
+    id: 46,
+    from_user_account_id: 9,
+    amount: "1500000",
+    description: "",
+    created_at: "2026-03-22T02:57:53.501Z",
+    to_user_account_id: 11,
+    type: "transfer",
+    date_action: "2026-03-22",
+    sub_category_code: null,
+    from_user_account_name: "bca",
+    to_user_account_name: "cash",
+    sub_category_name: null
+  }
 ];
 
-const savingsGoals = [
-  { name: "Dana Darurat", current: 8500000, target: 15000000, color: "#3b82f6" },
-  { name: "Liburan Bali", current: 2300000, target: 5000000, color: "#f97316" },
-  { name: "Laptop Baru", current: 4100000, target: 6000000, color: "#8b5cf6" },
-];
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-const fmt = (n: number) =>
-  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Math.abs(n));
-
-const fmtShort = (n: number) => {
-  if (Math.abs(n) >= 1000000) return `${(n / 1000000).toFixed(1)}jt`;
-  if (Math.abs(n) >= 1000) return `${(n / 1000).toFixed(0)}rb`;
-  return String(n);
-};
-
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-function StatCard({ label, value, sub, icon: Icon, trend, trendVal, color, delay }: {
-  label: string; value: string; sub?: string;
-  icon: React.ElementType; trend: "up" | "down" | "neutral";
-  trendVal: string; color: string; delay: number;
-}) {
-  const trendColor = trend === "up" ? "text-emerald-500" : trend === "down" ? "text-red-400" : "text-slate-400";
-  const TrendIcon = trend === "up" ? ArrowUpRight : ArrowDownRight;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.4, ease: "easeOut" }}
-      className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow"
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className={`p-2.5 rounded-xl ${color}`}>
-          <Icon size={16} className="text-white" strokeWidth={2.5} />
-        </div>
-        <div className={`flex items-center gap-1 text-xs font-bold ${trendColor}`}>
-          {trend !== "neutral" && <TrendIcon size={12} />}
-          {trendVal}
-        </div>
-      </div>
-      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-xl font-black text-slate-800 tabular-nums">{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
-    </motion.div>
-  );
+const fetchUserAccount = async () => {
+  const { data } = await api.post('/user_account/list')
+  const userAccountData = data?.data as IUserAccount[]
+  return userAccountData || []
 }
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-lg px-4 py-3 text-xs">
-      <p className="font-bold text-slate-600 mb-2">{label}</p>
-      {payload.map((p: any) => (
-        <div key={p.name} className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-slate-500">{p.name === "income" ? "Pemasukan" : "Pengeluaran"}:</span>
-          <span className="font-bold text-slate-700">{fmtShort(p.value)}</span>
-        </div>
-      ))}
-    </div>
-  );
-};
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const [filterMonth, setFilterMonth] = useState<Date | null>(new Date());
   const [activeSegment, setActiveSegment] = useState<number | null>(null);
+  const [allocationTab, setAllocationTab] = useState<'income' | 'expense'>('expense');
 
-  const totalExpense = expenseBreakdown.reduce((s, e) => s + e.value, 0);
+  const { data: userAccounts } = useQuery({
+    queryKey: ['user_account', 'list'],
+    queryFn: fetchUserAccount,
+    refetchOnWindowFocus: false,
+  });
+
+  const totalBalance = userAccounts?.reduce((s, a) => s + a.amount, 0);
+
+  // Dynamic Pie Data Map
+  const activeSummary = allocationTab === 'income' ? income_summary : expense_summary;
+  const pieData = activeSummary.map((item, index) => ({
+    name: item.ms_category_name,
+    value: item.amount,
+    color: CHART_COLORS[index % CHART_COLORS.length]
+  }));
+  const totalPieValue = pieData.reduce((s, e) => s + e.value, 0);
+
+  const monthName = filterMonth ? filterMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : '';
+
+  // Calculate Cashflow arrays based on days in local month
+  const targetDate = filterMonth || new Date();
+  const year = targetDate.getFullYear();
+  const month = targetDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const cashflowData = Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1;
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const found = date_summary.find((d) => d.date_action === dateStr);
+    
+    return {
+      date: `${day}`,
+      income: found ? found.income : 0,
+      expense: found ? found.expense : 0,
+    };
+  });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-10">
 
-      {/* ── Greeting ── */}
-      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-        <h2 className="text-2xl font-black text-slate-800 tracking-tight">Selamat datang 👋</h2>
-        <p className="text-slate-400 text-sm mt-0.5 flex items-center gap-1.5">
-          <CalendarDays size={13} />
-          Ringkasan keuanganmu per Januari 2026
-        </p>
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 bg-blue-100 text-blue-600 text-[10px] font-black uppercase tracking-wider rounded-full flex items-center gap-1.5 shadow-sm border border-blue-200/50">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+              Laporan Hari Ini
+            </span>
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Ringkasan Keuangan</h2>
+          <p className="text-slate-400 text-sm flex items-center gap-1.5 font-medium">
+            <CalendarDays size={14} className="text-blue-400" />
+            Terakhir diperbarui pada {formatDate(new Date().toISOString())}
+          </p>
+        </motion.div>
+      </div>
+
+      {/* ── Main Portfolio Card ── */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-slate-900 rounded-[2.5rem] p-6 sm:p-8 text-white relative overflow-hidden shadow-2xl shadow-slate-200"
+      >
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-600/30 rounded-full blur-[100px] -mr-32 -mt-32" />
+        <div className="relative z-[1] grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <p className="text-blue-300 text-xs font-bold uppercase tracking-[0.2em] mb-3">Total Portfolio</p>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2">{formatIDR(totalBalance || 0)}</h1>
+          </div>
+        </div>
       </motion.div>
 
-      {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Saldo" value="Rp 12,5jt" icon={Wallet}
-          trend="up" trendVal="+8.2%" color="bg-blue-500" delay={0} />
-        <StatCard label="Pemasukan" value="Rp 4,2jt" sub="Bulan ini" icon={TrendingUp}
-          trend="down" trendVal="-13%" color="bg-emerald-500" delay={0.07} />
-        <StatCard label="Pengeluaran" value="Rp 1,85jt" sub="Bulan ini" icon={TrendingDown}
-          trend="up" trendVal="+5%" color="bg-red-400" delay={0.14} />
-        <StatCard label="Transfer" value="Rp 500rb" sub="Bulan ini" icon={ArrowRightLeft}
-          trend="neutral" trendVal="Tetap" color="bg-violet-500" delay={0.21} />
-      </div>
+      {/* ── Akun & Aktivitas ── */}
+      <div className="space-y-8">
 
-      {/* ── Charts Row ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        {/* Cashflow Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}
-          className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
-        >
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm">Arus Kas</h3>
-              <p className="text-xs text-slate-400">6 bulan terakhir</p>
-            </div>
-            <div className="flex items-center gap-3 text-xs text-slate-400">
-              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />Pemasukan</div>
-              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-400" />Pengeluaran</div>
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={cashflowData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#34d399" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#34d399" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f87171" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#f87171" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} tickFormatter={fmtShort} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="income" stroke="#34d399" strokeWidth={2} fill="url(#incomeGrad)" dot={false} />
-              <Area type="monotone" dataKey="expense" stroke="#f87171" strokeWidth={2} fill="url(#expenseGrad)" dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Expense Breakdown */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-          className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
-        >
-          <h3 className="font-bold text-slate-800 text-sm mb-1">Kategori Pengeluaran</h3>
-          <p className="text-xs text-slate-400 mb-4">Bulan ini</p>
-
-          <div className="flex justify-center">
-            <PieChart width={140} height={140}>
-              <Pie
-                data={expenseBreakdown} cx={65} cy={65}
-                innerRadius={42} outerRadius={65}
-                dataKey="value" paddingAngle={3}
-                onMouseEnter={(_, i) => setActiveSegment(i)}
-                onMouseLeave={() => setActiveSegment(null)}
-              >
-                {expenseBreakdown.map((e, i) => (
-                  <Cell key={i} fill={e.color} opacity={activeSegment === null || activeSegment === i ? 1 : 0.4} />
-                ))}
-              </Pie>
-            </PieChart>
-          </div>
-
-          <div className="space-y-2 mt-2">
-            {expenseBreakdown.map((e, i) => (
-              <div key={i} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: e.color }} />
-                  <span className="text-slate-600">{e.name}</span>
-                </div>
-                <span className="font-bold text-slate-700">{Math.round(e.value / totalExpense * 100)}%</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* ── Bottom Row ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-        {/* Recent Transactions */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42 }}
-          className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm">Transaksi Terakhir</h3>
-              <p className="text-xs text-slate-400">5 transaksi terbaru</p>
-            </div>
-            <button className="flex items-center gap-1 text-xs text-blue-500 font-semibold hover:text-blue-600 transition">
-              Lihat semua <ChevronRight size={13} />
+        {/* Dompet & Rekening */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <Wallet size={16} className="text-blue-500" /> Dompet & Rekening
+            </h3>
+            <button className="cursor-pointer text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              <Link to="/dashboard/account">Kelola Akun</Link><ChevronRight size={14} />
             </button>
           </div>
 
-          <div className="space-y-1">
-            {recentTransactions.map((tx, i) => (
-              <motion.div
-                key={tx.id}
-                initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.42 + i * 0.06 }}
-                className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center text-base shrink-0">
-                    {tx.icon}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-700 leading-tight">{tx.name}</p>
-                    <p className="text-xs text-slate-400">{tx.date} · {tx.category}</p>
-                  </div>
-                </div>
-                <p className={`text-sm font-black tabular-nums ${tx.amount > 0 ? "text-emerald-500" : "text-slate-700"}`}>
-                  {tx.amount > 0 ? "+" : "-"}{fmt(tx.amount)}
-                </p>
-              </motion.div>
+          <div className="flex overflow-x-auto pb-4 gap-4 no-scrollbar -mx-1 px-1">
+            {userAccounts?.map((acc, i) => (
+              <AccountCard key={acc.id} account={acc} delay={i * 0.1} />
             ))}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Savings Goals */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.49 }}
-          className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm">Target Tabungan</h3>
-              <p className="text-xs text-slate-400">Progress saat ini</p>
+        {/* Riwayat Aktivitas (Actual Data) */}
+        <div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-6 shrink-0">
+              <h3 className="font-bold text-slate-800 text-sm">Riwayat Aktivitas</h3>
+              <button className="cursor-pointer flex items-center gap-1 text-xs text-blue-600 font-bold hover:gap-2 transition-all">
+                <Link to="/dashboard/records">Semua</Link> <ChevronRight size={14} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {recentTransactions.map((tx, i) => {
+                let icon = '💸';
+                let colorClass = 'text-slate-800';
+                let sign = '';
+
+                if (tx.type === 'income') {
+                  icon = '💰';
+                  colorClass = 'text-emerald-500';
+                  sign = '+';
+                } else if (tx.type === 'expense') {
+                  icon = '🍜';
+                  colorClass = 'text-slate-800';
+                  sign = '-';
+                } else if (tx.type === 'transfer') {
+                  icon = '🔄';
+                  colorClass = 'text-blue-500';
+                  sign = '';
+                }
+
+                const amountNum = parseFloat(tx.amount || '0');
+
+                // Try to format date, fallback to raw string if there's an error
+                let dateDisplay = tx.date_action;
+                try {
+                  dateDisplay = formatDate(new Date(tx.date_action).toISOString());
+                } catch (e) {
+                  // ignore
+                }
+
+                return (
+                  <motion.div
+                    key={tx.id}
+                    initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + i * 0.06 }}
+                    className="flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
+                        {icon}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-800 leading-tight capitalize">
+                          {tx.description || tx.sub_category_name || (tx.type === 'expense' ? 'Pengeluaran' : tx.type === 'income' ? 'Pemasukan' : 'Transfer')}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded font-bold uppercase tracking-tighter text-center min-w-[50px]">
+                            {tx.type === 'transfer' ? `${tx.from_user_account_name} ➔ ${tx.to_user_account_name}` : tx.from_user_account_name}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">• {dateDisplay}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className={`text-sm font-black tabular-nums ${colorClass}`}>
+                      {sign}{formatIDR(amountNum)}
+                    </p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ── Monthly Laporan Section ── */}
+      <div className="mt-8 pt-8 border-t border-slate-200/60">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h2 className="text-xl font-black text-slate-800">Laporan Bulanan</h2>
+            <p className="text-sm text-slate-500 font-medium">Analisis arus kas dan alokasi dana secara spesifik</p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <div className="z-[10] flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 shadow-sm hover:bg-slate-50 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+              <CalendarDays size={14} className="text-slate-400" />
+              <DatePicker
+                selected={filterMonth}
+                onChange={(date: Date | null) => setFilterMonth(date)}
+                dateFormat="MMMM yyyy"
+                showMonthYearPicker
+                shouldCloseOnSelect
+                closeOnScroll
+                maxDate={new Date()}
+                placeholderText="Pilih Bulan"
+                className="bg-transparent outline-none text-sm font-bold text-slate-600 w-[105px] cursor-pointer py-2.5"
+              />
             </div>
           </div>
+        </div>
 
-          <div className="space-y-5">
-            {savingsGoals.map((goal, i) => {
-              const pct = Math.round(goal.current / goal.target * 100);
-              return (
-                <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.49 + i * 0.08 }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-semibold text-slate-700">{goal.name}</p>
-                    <p className="text-xs font-bold text-slate-500">{pct}%</p>
-                  </div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }} animate={{ width: `${pct}%` }}
-                      transition={{ delay: 0.6 + i * 0.1, duration: 0.7, ease: "easeOut" }}
-                      className="h-full rounded-full"
-                      style={{ background: goal.color }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between mt-1.5">
-                    <p className="text-xs text-slate-400">{fmt(goal.current)}</p>
-                    <p className="text-xs text-slate-400">dari {fmt(goal.target)}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Pergerakan Saldo (Span 8) */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="lg:col-span-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 h-auto lg:h-[520px]"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="font-bold text-slate-800 text-sm">Pergerakan Saldo</h3>
+                <p className="text-xs text-slate-400 font-medium">Tren bulan {monthName}</p>
+              </div>
+            </div>
+            <div className="h-[300px] lg:h-[400px] w-full mt-2 lg:mt-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={cashflowData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} tickFormatter={fmtShort} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                  <Area type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
+                  <Area type="monotone" dataKey="expense" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorExpense)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
 
-          {/* Monthly Bar Chart */}
-          <div className="mt-5 pt-5 border-t border-slate-100">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Pengeluaran per Bulan</p>
-            <ResponsiveContainer width="100%" height={80}>
-              <BarChart data={cashflowData} margin={{ top: 0, right: 0, left: -30, bottom: 0 }} barSize={14}>
-                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  cursor={{ fill: "#f1f5f9" }}
-                  content={({ active, payload, label }) =>
-                    active && payload?.length ? (
-                      <div className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow">
-                        <p className="font-bold text-slate-600">{label}</p>
-                        <p className="text-red-400 font-bold">{fmtShort(payload[0].value as number)}</p>
-                      </div>
-                    ) : null
-                  }
-                />
-                <Bar dataKey="expense" fill="#fca5a5" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
+          {/* Alokasi Dana (Span 4) */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            className="lg:col-span-4 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 flex flex-col h-auto min-h-[450px] lg:h-[520px]"
+          >
+            <div className="mb-6">
+              <h3 className="font-bold text-slate-800 text-sm">Alokasi Dana</h3>
+              <p className="text-xs text-slate-400 font-medium">Berdasarkan bulan {monthName}</p>
+            </div>
+
+            {/* Tab Switcher */}
+            <div className="flex bg-slate-50 p-1 rounded-xl mb-7 overflow-hidden border border-slate-100/50">
+              <button
+                onClick={() => setAllocationTab('income')}
+                className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${allocationTab === 'income' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50 ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                Pemasukan
+              </button>
+              <button
+                onClick={() => setAllocationTab('expense')}
+                className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${allocationTab === 'expense' ? 'bg-white text-rose-600 shadow-sm border border-slate-200/50 ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                Pengeluaran
+              </button>
+            </div>
+
+            <div className="flex justify-center relative items-center mb-6 min-h-[160px]">
+              {pieData.length > 0 ? (
+                <>
+                  <PieChart width={160} height={160}>
+                    <Pie
+                      data={pieData} cx={75} cy={75}
+                      innerRadius={55} outerRadius={80}
+                      dataKey="value" paddingAngle={5}
+                      stroke="none"
+                      onMouseEnter={(_, i) => setActiveSegment(i)}
+                      onMouseLeave={() => setActiveSegment(null)}
+                    >
+                      {pieData.map((e, i) => (
+                        <Cell key={i} fill={e.color} opacity={activeSegment === null || activeSegment === i ? 1 : 0.45} className="outline-none transition-opacity duration-300" />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{allocationTab === 'income' ? 'Pemasukan' : 'Pengeluaran'}</p>
+                    <p className="text-sm font-black text-slate-800 tracking-tighter">{fmtShort(totalPieValue)}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div className="w-32 h-32 rounded-full border-8 border-slate-50 flex items-center justify-center mb-2 shadow-inner">
+                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest text-center px-4 leading-tight">Kosong</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3 flex-1 overflow-y-auto pr-1 no-scrollbar mt-2">
+              {pieData.length > 0 ? (
+                pieData.map((e, i) => (
+                  <div key={i} className={`flex items-center justify-between transition-all duration-300 ${activeSegment !== null && activeSegment !== i ? 'opacity-40 grayscale-[50%]' : 'opacity-100'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ background: e.color }} />
+                      <span className="text-xs font-bold text-slate-600">{e.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-black text-slate-800 tabular-nums block">{fmtShort(e.value)}</span>
+                      <span className="text-[10px] font-bold text-slate-400">{Math.round((e.value / totalPieValue) * 100) || 0}%</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                  <p className="text-xs font-medium text-center bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
+                    Belum ada data {allocationTab === 'income' ? 'pemasukan' : 'pengeluaran'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+        </div>
       </div>
+
     </div>
   );
 }

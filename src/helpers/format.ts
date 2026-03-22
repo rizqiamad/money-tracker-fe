@@ -12,6 +12,12 @@ export const formatAngka = (value: string) => {
   return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
+export const fmtShort = (n: number) => {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}jt`;
+  if (n >= 1000) return `${(n / 1000).toFixed(0)}rb`;
+  return String(n);
+};
+
 // yyyy-mm-dd
 export const formatDateOnly = (date: Date) => {
   const year = date.getFullYear();

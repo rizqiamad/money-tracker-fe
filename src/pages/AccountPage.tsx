@@ -14,7 +14,7 @@ export interface INewUserAccount {
   amount: number
 }
 
-const fetcUserAccounts = async () => {
+const fetchAccounts = async () => {
   const { data } = await api.post('/ms_account/list')
   const accountData = (data?.data as IMsAccount[]).map((item) => ({ value: item.ms_account_code, label: item.ms_account_name }))
   return accountData || []
@@ -60,7 +60,7 @@ export default function AccountsPage() {
 
   const { data: msAccounts } = useQuery({
     queryKey: ['ms_account_list'],
-    queryFn: fetcUserAccounts,
+    queryFn: fetchAccounts,
     staleTime: Infinity,
     refetchOnMount: false,
     refetchOnWindowFocus: false
