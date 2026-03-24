@@ -201,7 +201,7 @@ export default function RecordsPage() {
                 >
                   {recordData?.data.map((tx, i) => (
                     <motion.tr
-                      key={tx.id}
+                      key={tx.record_id}
                       initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04 }}
                       className="hover:bg-slate-50/70 transition-colors"
@@ -241,7 +241,7 @@ export default function RecordsPage() {
           ) : (
             <AnimatePresence mode="wait">
               <motion.div key={currentPage}>
-                {recordData?.data.map((tx, i) => <MobileCard key={tx.id} tx={tx} index={i} />)}
+                {recordData?.data.map((tx, i) => <MobileCard key={tx.record_id} tx={tx} index={i} />)}
               </motion.div>
             </AnimatePresence>
           )}

@@ -14,127 +14,32 @@ import type { IUserAccount } from "../types/userAccount";
 import { api } from "../helpers/axios";
 import { useQuery } from "@tanstack/react-query";
 import CustomTooltip from "../components/DashboardPage/CustomTooltip";
+import type { ISummaryRecord, IListRecord, IListRecordPayload } from "../types/record";
+import type { IResponse } from "../types/response";
 
 // ── Mock Data ──────────────────────────────────────────────────────────────────
 
-const date_summary = [
-  {
-      date_action: "2026-02-11",
-      income: 0,
-      expense: 138500
-  },
-  {
-      date_action: "2026-02-22",
-      income: 0,
-      expense: 411000
-  },
-  {
-      date_action: "2026-03-21",
-      income: 10000000,
-      expense: 0
-  }
-];
-
 const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
-
-const income_summary: any[] = [];
-
-const expense_summary = [
-  {
-    amount: 138500,
-    ms_category_code: "E001",
-    ms_category_name: "Equipment"
-  },
-  {
-    amount: 200000,
-    ms_category_code: "F001",
-    ms_category_name: "Food & Beverage"
-  },
-  {
-    amount: 211000,
-    ms_category_code: "L001",
-    ms_category_name: "Lifestyle"
-  }
-];
-
-const recentTransactions = [
-  {
-    id: 44,
-    from_user_account_id: 10,
-    amount: "138500",
-    description: "",
-    created_at: "2026-03-20T10:16:56.462Z",
-    to_user_account_id: null,
-    type: "expense",
-    date_action: "2026-02-11",
-    sub_category_code: "TE001",
-    from_user_account_name: "bsi",
-    to_user_account_name: null,
-    sub_category_name: "Tools"
-  },
-  {
-    id: 43,
-    from_user_account_id: 9,
-    amount: "200000",
-    description: "makan bareng keluarga",
-    created_at: "2026-02-22T06:39:33.726Z",
-    to_user_account_id: null,
-    type: "expense",
-    date_action: "2026-02-22",
-    sub_category_code: "DF001",
-    from_user_account_name: "bca",
-    to_user_account_name: null,
-    sub_category_name: "Dinner"
-  },
-  {
-    id: 42,
-    from_user_account_id: 10,
-    amount: "211000",
-    description: "padel",
-    created_at: "2026-02-22T01:59:28.390Z",
-    to_user_account_id: null,
-    type: "expense",
-    date_action: "2026-02-22",
-    sub_category_code: "HL001",
-    from_user_account_name: "bsi",
-    to_user_account_name: null,
-    sub_category_name: "Hobby"
-  },
-  {
-    id: 45,
-    from_user_account_id: 10,
-    amount: "10000000",
-    description: "",
-    created_at: "2026-03-21T15:35:52.981Z",
-    to_user_account_id: null,
-    type: "income",
-    date_action: "2026-03-21",
-    sub_category_code: "FS001",
-    from_user_account_name: "bsi",
-    to_user_account_name: null,
-    sub_category_name: "Freelance"
-  },
-  {
-    id: 46,
-    from_user_account_id: 9,
-    amount: "1500000",
-    description: "",
-    created_at: "2026-03-22T02:57:53.501Z",
-    to_user_account_id: 11,
-    type: "transfer",
-    date_action: "2026-03-22",
-    sub_category_code: null,
-    from_user_account_name: "bca",
-    to_user_account_name: "cash",
-    sub_category_name: null
-  }
-];
 
 const fetchUserAccount = async () => {
   const { data } = await api.post('/user_account/list')
   const userAccountData = data?.data as IUserAccount[]
   return userAccountData || []
 }
+
+const fetchSummary = async (query: string) => {
+  const { data } = await api.get('/record/summary', {
+    params: { date_action: query }
+  });
+
+  const summaryData = data?.data as ISummaryRecord;
+  return summaryData || [];
+}
+
+const fetchRecord = async (payload: IListRecordPayload) => {
+  const { data } = await api.post('/record/list', payload)
+  return data as IResponse<IListRecord[]>
+};
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
@@ -149,16 +54,28 @@ export default function DashboardPage() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: summary } = useQuery({
+    queryKey: ['summary', filterMonth],
+    queryFn: () => fetchSummary(filterMonth?.toISOString().split('T')[0] || ''),
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: recordData } = useQuery({
+    queryKey: ['record', 'list'],
+    queryFn: () => fetchRecord({ limit: 5, current: 1, order_by_name: 'date_action', order_by_value: 'desc' }),
+    refetchOnWindowFocus: false
+  })
+
   const totalBalance = userAccounts?.reduce((s, a) => s + a.amount, 0);
 
   // Dynamic Pie Data Map
-  const activeSummary = allocationTab === 'income' ? income_summary : expense_summary;
-  const pieData = activeSummary.map((item, index) => ({
+  const activeSummary = allocationTab === 'income' ? summary?.income_summary : summary?.expense_summary;
+  const pieData = activeSummary?.map((item, index) => ({
     name: item.ms_category_name,
     value: item.amount,
     color: CHART_COLORS[index % CHART_COLORS.length]
   }));
-  const totalPieValue = pieData.reduce((s, e) => s + e.value, 0);
+  const totalPieValue = pieData?.reduce((s, e) => s + e.value, 0);
 
   const monthName = filterMonth ? filterMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : '';
 
@@ -171,8 +88,8 @@ export default function DashboardPage() {
   const cashflowData = Array.from({ length: daysInMonth }, (_, i) => {
     const day = i + 1;
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const found = date_summary.find((d) => d.date_action === dateStr);
-    
+    const found = summary?.date_summary.find((d) => d.date_action === dateStr);
+
     return {
       date: `${day}`,
       income: found ? found.income : 0,
@@ -250,7 +167,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-4">
-              {recentTransactions.map((tx, i) => {
+              {recordData?.data?.map((tx, i) => {
                 let icon = '💸';
                 let colorClass = 'text-slate-800';
                 let sign = '';
@@ -269,7 +186,7 @@ export default function DashboardPage() {
                   sign = '';
                 }
 
-                const amountNum = parseFloat(tx.amount || '0');
+                const amountNum = Number(tx.amount) || 0;
 
                 // Try to format date, fallback to raw string if there's an error
                 let dateDisplay = tx.date_action;
@@ -281,7 +198,7 @@ export default function DashboardPage() {
 
                 return (
                   <motion.div
-                    key={tx.id}
+                    key={tx.record_id}
                     initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 + i * 0.06 }}
                     className="flex items-center justify-between group"
@@ -291,12 +208,17 @@ export default function DashboardPage() {
                         {icon}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-slate-800 leading-tight capitalize">
-                          {tx.description || tx.sub_category_name || (tx.type === 'expense' ? 'Pengeluaran' : tx.type === 'income' ? 'Pemasukan' : 'Transfer')}
+                        <p className="text-sm font-bold text-slate-800 leading-tight capitalize" title={tx.ms_category_name || ''}>
+                          {tx.ms_category_name || (tx.type === 'expense' ? 'Pengeluaran' : tx.type === 'income' ? 'Pemasukan' : 'Transfer')}
                         </p>
-                        <div className="flex items-center gap-1.5 mt-1">
+                        {tx.description && (
+                          <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5 truncate max-w-[150px] sm:max-w-[200px]" title={tx.description}>
+                            {tx.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-1.5 mt-1.5">
                           <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded font-bold uppercase tracking-tighter text-center min-w-[50px]">
-                            {tx.type === 'transfer' ? `${tx.from_user_account_name} ➔ ${tx.to_user_account_name}` : tx.from_user_account_name}
+                            {tx.type === 'transfer' ? `${tx.from_user_account_code} ➔ ${tx.to_user_account_code}` : tx.from_user_account_code}
                           </span>
                           <span className="text-[10px] text-slate-400 font-medium">• {dateDisplay}</span>
                         </div>
@@ -400,7 +322,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex justify-center relative items-center mb-6 min-h-[160px]">
-              {pieData.length > 0 ? (
+              {pieData && pieData?.length > 0 ? (
                 <>
                   <PieChart width={160} height={160}>
                     <Pie
@@ -411,14 +333,14 @@ export default function DashboardPage() {
                       onMouseEnter={(_, i) => setActiveSegment(i)}
                       onMouseLeave={() => setActiveSegment(null)}
                     >
-                      {pieData.map((e, i) => (
+                      {pieData?.map((e, i) => (
                         <Cell key={i} fill={e.color} opacity={activeSegment === null || activeSegment === i ? 1 : 0.45} className="outline-none transition-opacity duration-300" />
                       ))}
                     </Pie>
                   </PieChart>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{allocationTab === 'income' ? 'Pemasukan' : 'Pengeluaran'}</p>
-                    <p className="text-sm font-black text-slate-800 tracking-tighter">{fmtShort(totalPieValue)}</p>
+                    <p className="text-sm font-black text-slate-800 tracking-tighter">{fmtShort(totalPieValue || 0)}</p>
                   </div>
                 </>
               ) : (
@@ -431,8 +353,8 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-3 flex-1 overflow-y-auto pr-1 no-scrollbar mt-2">
-              {pieData.length > 0 ? (
-                pieData.map((e, i) => (
+              {pieData && pieData?.length > 0 ? (
+                pieData?.map((e, i) => (
                   <div key={i} className={`flex items-center justify-between transition-all duration-300 ${activeSegment !== null && activeSegment !== i ? 'opacity-40 grayscale-[50%]' : 'opacity-100'}`}>
                     <div className="flex items-center gap-3">
                       <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ background: e.color }} />
@@ -440,7 +362,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="text-right">
                       <span className="text-xs font-black text-slate-800 tabular-nums block">{fmtShort(e.value)}</span>
-                      <span className="text-[10px] font-bold text-slate-400">{Math.round((e.value / totalPieValue) * 100) || 0}%</span>
+                      <span className="text-[10px] font-bold text-slate-400">{Math.round((e.value / (totalPieValue || 1)) * 100) || 0}%</span>
                     </div>
                   </div>
                 ))
