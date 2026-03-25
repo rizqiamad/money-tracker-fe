@@ -3,7 +3,7 @@ import {
   Search, SlidersHorizontal, ChevronDown, Receipt,
   X
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDate, formatIDR } from "../helpers/format";
 import type { IListRecord, IListRecordPayload, RecordType } from "../types/record";
@@ -25,6 +25,7 @@ const fetchRecord = async (payload: IListRecordPayload) => {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function RecordsPage() {
+  const datePickerRef = useRef<any>(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [filterType, setFilterType] = useState<RecordType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,11 +68,13 @@ export default function RecordsPage() {
         </div>
         <div className="flex items-center gap-2">
           <DatePicker
+            ref={datePickerRef}
             rangeSeparator="-"
             selected={selectedMonth}
-            onChange={(date: any) => date && setSelectedMonth(date)}
+            onChange={(date: any) => { if (date) setSelectedMonth(date); datePickerRef.current?.setOpen(false); }}
             dateFormat="MMMM yyyy"
             showMonthYearPicker
+            onClickOutside={() => datePickerRef.current?.setOpen(false)}
             customInput={
               <div className="flex items-center gap-2 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer shadow-sm hover:border-slate-300 transition">
                 <span className="text-sm font-medium text-slate-700">

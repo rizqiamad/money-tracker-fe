@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell
@@ -44,6 +44,7 @@ const fetchRecord = async (payload: IListRecordPayload) => {
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const datePickerRef = useRef<any>(null);
   const [filterMonth, setFilterMonth] = useState<Date | null>(new Date());
   const [activeSegment, setActiveSegment] = useState<number | null>(null);
   const [allocationTab, setAllocationTab] = useState<'income' | 'expense'>('expense');
@@ -246,8 +247,9 @@ export default function DashboardPage() {
             <div className="z-[10] flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 shadow-sm hover:bg-slate-50 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
               <CalendarDays size={14} className="text-slate-400" />
               <DatePicker
+                ref={datePickerRef}
                 selected={filterMonth}
-                onChange={(date: Date | null) => setFilterMonth(date)}
+                onChange={(date: Date | null) => { setFilterMonth(date); datePickerRef.current?.setOpen(false); }}
                 dateFormat="MMMM yyyy"
                 showMonthYearPicker
                 shouldCloseOnSelect
@@ -255,6 +257,7 @@ export default function DashboardPage() {
                 maxDate={new Date()}
                 placeholderText="Pilih Bulan"
                 className="bg-transparent outline-none text-sm font-bold text-slate-600 w-[105px] cursor-pointer py-2.5"
+                onClickOutside={() => datePickerRef.current?.setOpen(false)}
               />
             </div>
           </div>

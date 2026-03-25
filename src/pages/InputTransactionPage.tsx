@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRightLeft, PenLine, Calendar, Plus, Wallet, Tag, ChevronRight, Minus } from "lucide-react";
 import CreatableSelect from "react-select/creatable";
@@ -34,6 +34,8 @@ const fetchRecord = async (reqBody: IRecord) => {
 export default function InputTransactionPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate()
+
+  const datePickerRef = useRef<any>(null);
 
   const [mainMode, setMainMode] = useState<"record" | "transfer">("record");
   const [subMode, setSubMode] = useState<"expense" | "income">("expense");
@@ -242,6 +244,7 @@ export default function InputTransactionPage() {
             <div className="flex-1 min-w-0">
               <p className={`text-[11px] font-bold uppercase tracking-wider mb-0.5 ${labelColor}`}>Tanggal</p>
               <DatePicker
+                ref={datePickerRef}
                 selected={date}
                 onChange={(d: any) => setDate(d)}
                 dateFormat="dd MMMM yyyy"
@@ -250,12 +253,13 @@ export default function InputTransactionPage() {
                 placeholderText="Pilih tanggal transaksi..."
                 showMonthDropdown showYearDropdown dropdownMode="select"
                 required shouldCloseOnSelect
+                onClickOutside={() => datePickerRef.current?.setOpen(false)}
               >
                 <div className="flex gap-2 p-2 border-t border-slate-100">
-                  <button type="button" onClick={() => setDate(new Date())}
+                  <button type="button" onClick={() => { setDate(new Date()); datePickerRef.current?.setOpen(false); }}
                     className="cursor-pointer flex-1 text-[10px] uppercase tracking-wider font-bold bg-blue-600 text-white py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
                   >Hari Ini</button>
-                  <button type="button" onClick={() => setDate(null)}
+                  <button type="button" onClick={() => { setDate(null); datePickerRef.current?.setOpen(false); }}
                     className="cursor-pointer flex-1 text-[10px] uppercase tracking-wider font-bold bg-slate-100 text-slate-500 py-1.5 rounded-lg hover:bg-slate-200 transition-colors"
                   >Reset</button>
                 </div>
