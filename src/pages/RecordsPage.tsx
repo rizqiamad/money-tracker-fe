@@ -3,7 +3,7 @@ import {
   Search, SlidersHorizontal, ChevronDown, Receipt,
   X
 } from "lucide-react";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDate, formatIDR, formatDateOnly } from "../helpers/format";
 import type { IListRecord, IListRecordPayload, RecordType } from "../types/record";
@@ -25,9 +25,6 @@ const fetchRecord = async (payload: IListRecordPayload) => {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function RecordsPage() {
-  const datePickerRef = useRef<any>(null);
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
-
   const [filterType, setFilterType] = useState<RecordType | "all">("all");
   const [filterAccount, setFilterAccount] = useState<number | "all">("all");
   const [filterCategory, setFilterCategory] = useState<string | "all">("all");
@@ -40,6 +37,33 @@ export default function RecordsPage() {
   const [showFilter, setShowFilter] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(5);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+
+  const handleExportCSV = () => {
+    if (!recordData?.data || recordData.data.length === 0) return;
+
+    const headers = ["Tanggal", "Tipe", "Kategori", "Akun", "Catatan", "Jumlah"];
+
+    const rows = recordData.data.map(tx => {
+      const date = typeof tx.date_action === "string" ? tx.date_action.split("T")[0] : tx.date_action;
+      const type = tx.type === 'expense' ? 'Pengeluaran' : tx.type === 'income' ? 'Pemasukan' : 'Transfer';
+      const category = tx.ms_category_name ? `${tx.ms_category_name}${tx.sub_category_name ? ' - ' + tx.sub_category_name : ''}` : (tx.sub_category_name || '-');
+      const account = tx.type === 'transfer' ? `${tx.from_user_account_code} -> ${tx.to_user_account_code}` : (tx.from_user_account_code || '-');
+      const note = tx.description || '-';
+      return [date, type, category, account, note, tx.amount]
+        .map(value => `"${String(value).replace(/"/g, '""')}"`).join(",");
+    });
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Export_Transaksi_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const { data: accountsList } = useQuery({
     queryKey: ['user_account', 'list'], queryFn: async () => {
@@ -98,32 +122,36 @@ export default function RecordsPage() {
           <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Laporan Transaksi</h2>
           <p className="text-slate-500 text-sm mt-1">Analisis riwayat keuanganmu secara detail.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <DatePicker
-            ref={datePickerRef}
-            rangeSeparator="-"
-            selected={selectedMonth}
-            onChange={(date: any) => { if (date) setSelectedMonth(date); datePickerRef.current?.setOpen(false); }}
-            dateFormat="MMMM yyyy"
-            showMonthYearPicker
-            onClickOutside={() => datePickerRef.current?.setOpen(false)}
-            customInput={
-              <div className="flex items-center gap-2 pl-4 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer shadow-sm hover:border-slate-300 transition">
-                <span className="text-sm font-medium text-slate-700">
-                  {selectedMonth.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
-                </span>
-                <ChevronDown size={13} className="text-slate-400" />
-              </div>
-            }
-          />
+        <div className="flex items-center gap-2 relative z-20">
           <motion.button
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-            onClick={() => alert('export')}
+            onClick={() => setShowExportMenu(!showExportMenu)}
             className="cursor-pointer flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-500/20 text-sm whitespace-nowrap"
           >
             <Download size={15} />
             <span className="hidden sm:inline">Export</span>
+            <ChevronDown size={13} className={`transition-transform duration-200 ${showExportMenu ? 'rotate-180' : ''}`} />
           </motion.button>
+
+          <AnimatePresence>
+            {showExportMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowExportMenu(false)} />
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }}
+                  className="absolute right-0 top-full mt-2 w-40 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden z-20"
+                >
+                  <button
+                    onClick={() => { handleExportCSV(); setShowExportMenu(false); }}
+                    className="cursor-pointer w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    Export as CSV
+                  </button>
+                  {/* Add future export formats here */}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
