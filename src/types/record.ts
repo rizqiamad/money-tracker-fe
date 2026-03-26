@@ -16,6 +16,8 @@ export interface IListRecord {
   description: string;
   type: RecordType;
   date_action: string;
+  ms_category_code?: string;
+  sub_category_code?: string;
   sub_category_name?: string;
   ms_category_name?: string;
   from_user_account_code?: string;
@@ -26,9 +28,12 @@ export interface IListRecordPayload {
   id?: number;
   from_user_account_id?: number;
   to_user_account_id?: number;
+  sub_category_code?: string;
+  ms_category_code?: string;
+  start_date?: string;
+  end_date?: string;
   type?: RecordType;
   date_action?: string;
-  sub_category_code?: string;
   description?: string;
   search?: string;
   order_by_name?: string;

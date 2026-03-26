@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import CustomTooltip from "../components/DashboardPage/CustomTooltip";
 import type { ISummaryRecord, IListRecord, IListRecordPayload } from "../types/record";
 import type { IResponse } from "../types/response";
+import AmountDisplay from "../components/RecordsPage/AmountDisplay";
 
 // ── Mock Data ──────────────────────────────────────────────────────────────────
 
@@ -142,7 +143,7 @@ export default function DashboardPage() {
             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
               <Wallet size={16} className="text-blue-500" /> Dompet & Rekening
             </h3>
-            <button className="cursor-pointer text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+            <button className="cursor-pointer text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 underline">
               <Link to="/dashboard/account">Kelola Akun</Link><ChevronRight size={14} />
             </button>
           </div>
@@ -162,7 +163,7 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between mb-6 shrink-0">
               <h3 className="font-bold text-slate-800 text-sm">Riwayat Aktivitas</h3>
-              <button className="cursor-pointer flex items-center gap-1 text-xs text-blue-600 font-bold hover:gap-2 transition-all">
+              <button className="cursor-pointer flex items-center gap-1 text-xs text-blue-600 font-bold hover:gap-2 transition-all underline">
                 <Link to="/dashboard/records">Semua</Link> <ChevronRight size={14} />
               </button>
             </div>
@@ -170,24 +171,14 @@ export default function DashboardPage() {
             <div className="space-y-4">
               {recordData?.data?.map((tx, i) => {
                 let icon = '💸';
-                let colorClass = 'text-slate-800';
-                let sign = '';
 
                 if (tx.type === 'income') {
                   icon = '💰';
-                  colorClass = 'text-emerald-500';
-                  sign = '+';
                 } else if (tx.type === 'expense') {
                   icon = '🍜';
-                  colorClass = 'text-slate-800';
-                  sign = '-';
                 } else if (tx.type === 'transfer') {
                   icon = '🔄';
-                  colorClass = 'text-blue-500';
-                  sign = '';
                 }
-
-                const amountNum = Number(tx.amount) || 0;
 
                 // Try to format date, fallback to raw string if there's an error
                 let dateDisplay = tx.date_action;
@@ -225,8 +216,8 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     </div>
-                    <p className={`text-sm font-black tabular-nums ${colorClass}`}>
-                      {sign}{formatIDR(amountNum)}
+                    <p className={`text-sm font-black tabular-nums`}>
+                      <AmountDisplay type={tx.type} amount={tx.amount} />
                     </p>
                   </motion.div>
                 );
@@ -312,13 +303,13 @@ export default function DashboardPage() {
             <div className="flex bg-slate-50 p-1 rounded-xl mb-7 overflow-hidden border border-slate-100/50">
               <button
                 onClick={() => setAllocationTab('income')}
-                className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${allocationTab === 'income' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50 ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600'}`}
+                className={`cursor-pointer flex-1 text-xs font-bold py-2 rounded-lg transition-all ${allocationTab === 'income' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50 ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600'}`}
               >
                 Pemasukan
               </button>
               <button
                 onClick={() => setAllocationTab('expense')}
-                className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${allocationTab === 'expense' ? 'bg-white text-rose-600 shadow-sm border border-slate-200/50 ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600'}`}
+                className={`cursor-pointer flex-1 text-xs font-bold py-2 rounded-lg transition-all ${allocationTab === 'expense' ? 'bg-white text-rose-600 shadow-sm border border-slate-200/50 ring-1 ring-black/5' : 'text-slate-400 hover:text-slate-600'}`}
               >
                 Pengeluaran
               </button>
