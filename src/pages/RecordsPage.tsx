@@ -122,7 +122,7 @@ export default function RecordsPage() {
           <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Laporan Transaksi</h2>
           <p className="text-slate-500 text-sm mt-1">Analisis riwayat keuanganmu secara detail.</p>
         </div>
-        <div className="flex items-center gap-2 relative z-20">
+        <div className="flex items-center gap-2 relative z-10">
           <motion.button
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={() => setShowExportMenu(!showExportMenu)}

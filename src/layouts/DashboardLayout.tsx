@@ -153,12 +153,12 @@ export default function DashboardLayout() {
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Informasi Akun</p>
                     <p className="text-sm font-bold text-slate-700 mt-0.5 capitalize">{user.username}</p>
                   </div>
-                  <button onClick={() => navigate('/profile')} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                  <button onClick={() => navigate('/profile')} className="cursor-pointer w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                     <User size={16} />
                     Lihat Profil
                   </button>
                   <div className="border-t border-slate-100 pt-1">
-                    <button onClick={() => mutate()} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors font-bold">
+                    <button onClick={() => mutate()} className="cursor-pointer w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors font-bold">
                       <LogOut size={16} />
                       Keluar
                     </button>
