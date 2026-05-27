@@ -4,7 +4,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell
 } from "recharts";
-import { Wallet, CalendarDays, ChevronRight } from "lucide-react";
+import { Wallet, CalendarDays, ChevronRight, Wallet2 } from "lucide-react";
 import { fmtShort, formatDate, formatIDR } from "../helpers/format";
 import { Link } from "react-router";
 import DatePicker from "react-datepicker";
@@ -17,6 +17,7 @@ import CustomTooltip from "../components/DashboardPage/CustomTooltip";
 import type { ISummaryRecord, IListRecord, IListRecordPayload } from "../types/record";
 import type { IResponse } from "../types/response";
 import AmountDisplay from "../components/RecordsPage/AmountDisplay";
+import EmptyState from "../components/EmptyState";
 
 // ── Mock Data ──────────────────────────────────────────────────────────────────
 
@@ -169,59 +170,61 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-4">
-              {recordData?.data?.map((tx, i) => {
-                let icon = '💸';
+              {
+                recordData?.data?.length ? (recordData?.data?.map((tx, i) => {
+                  let icon = '💸';
 
-                if (tx.type === 'income') {
-                  icon = '💰';
-                } else if (tx.type === 'expense') {
-                  icon = '🍜';
-                } else if (tx.type === 'transfer') {
-                  icon = '🔄';
-                }
+                  if (tx.type === 'income') {
+                    icon = '💰';
+                  } else if (tx.type === 'expense') {
+                    icon = '🍜';
+                  } else if (tx.type === 'transfer') {
+                    icon = '🔄';
+                  }
 
-                // Try to format date, fallback to raw string if there's an error
-                let dateDisplay = tx.date_action;
-                try {
-                  dateDisplay = formatDate(new Date(tx.date_action).toISOString());
-                } catch (e) {
-                  // ignore
-                }
+                  // Try to format date, fallback to raw string if there's an error
+                  let dateDisplay = tx.date_action;
+                  try {
+                    dateDisplay = formatDate(new Date(tx.date_action).toISOString());
+                  } catch (e) {
+                    // ignore
+                  }
 
-                return (
-                  <motion.div
-                    key={tx.record_id}
-                    initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 + i * 0.06 }}
-                    className="flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
-                        {icon}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-800 leading-tight capitalize" title={tx.ms_category_name || ''}>
-                          {tx.ms_category_name || (tx.type === 'expense' ? 'Pengeluaran' : tx.type === 'income' ? 'Pemasukan' : 'Transfer')}
-                        </p>
-                        {tx.description && (
-                          <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5 truncate max-w-[150px] sm:max-w-[200px]" title={tx.description}>
-                            {tx.description}
+                  return (
+                    <motion.div
+                      key={tx.record_id}
+                      initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 + i * 0.06 }}
+                      className="flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
+                          {icon}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800 leading-tight capitalize" title={tx.ms_category_name || ''}>
+                            {tx.ms_category_name || (tx.type === 'expense' ? 'Pengeluaran' : tx.type === 'income' ? 'Pemasukan' : 'Transfer')}
                           </p>
-                        )}
-                        <div className="flex items-center gap-1.5 mt-1.5">
-                          <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded font-bold uppercase tracking-tighter text-center min-w-[50px]">
-                            {tx.type === 'transfer' ? `${tx.from_user_account_code} ➔ ${tx.to_user_account_code}` : tx.from_user_account_code}
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-medium">• {dateDisplay}</span>
+                          {tx.description && (
+                            <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5 truncate max-w-[150px] sm:max-w-[200px]" title={tx.description}>
+                              {tx.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded font-bold uppercase tracking-tighter text-center min-w-[50px]">
+                              {tx.type === 'transfer' ? `${tx.from_user_account_code} ➔ ${tx.to_user_account_code}` : tx.from_user_account_code}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-medium">• {dateDisplay}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <p className={`text-sm font-black tabular-nums`}>
-                      <AmountDisplay type={tx.type} amount={tx.amount} />
-                    </p>
-                  </motion.div>
-                );
-              })}
+                      <p className={`text-sm font-black tabular-nums`}>
+                        <AmountDisplay type={tx.type} amount={tx.amount} />
+                      </p>
+                    </motion.div>
+                  );
+                })) : (<EmptyState icon={Wallet2} />)
+              }
             </div>
           </motion.div>
         </div>
